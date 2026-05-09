@@ -1,6 +1,9 @@
 import { useState } from "react";
 
 export default function AddStudentPage({ onBack }) {
+  const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const schoolId = loggedUser?.schoolId;
+
   const [form, setForm] = useState({
     admissionNo: "", fullName: "", dob: "", gender: "", bloodGroup: "",
     category: "", religion: "", nationality: "",
@@ -26,10 +29,62 @@ export default function AddStudentPage({ onBack }) {
     return e;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setSubmitted(true);
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
+
+    try {
+
+      const payload = {
+        schoolId: schoolId,   // 🔥 FIXED
+
+        admissionNumber: form.admissionNo,
+        fullName: form.fullName,
+        dateOfBirth: form.dob,
+        gender: form.gender,
+        bloodGroup: form.bloodGroup,
+        category: form.category,
+        religion: form.religion,
+        nationality: form.nationality,
+
+        parentName: form.parentName,
+        relationship: form.relationship,
+        parentMobile: form.mobile,
+        parentEmail: form.email,
+        address: form.address,
+
+        className: form.classVal,
+        section: form.section,
+      };
+
+      const response = await fetch(
+        "http://localhost:8089/api/students/add",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Student Added:", data);
+        setSubmitted(true);
+      } else {
+        alert(data.message || "Failed to add student");
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Unable to connect to server");
+    }
   };
 
   if (submitted) return (

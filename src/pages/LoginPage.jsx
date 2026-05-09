@@ -18,18 +18,69 @@ export default function LoginPage({ onNavigate, onLogin, registeredUsers }) {
     return e;
   };
 
-  const handleLogin = () => {
-    const e = validate();
-    setErrors(e);
-    setAuthError("");
-    if (Object.keys(e).length > 0) return;
-    setLoading(true);
-    setTimeout(() => {
-      const found = (registeredUsers || []).find(u => u.mobile === mobile && u.password === password);
-      setLoading(false);
-      if (found) { onLogin(found); } else { setAuthError("Invalid mobile number or password. Please check your credentials."); }
-    }, 900);
-  };
+  const handleLogin = async () => {
+  const e = validate();
+
+  setErrors(e);
+  setAuthError("");
+
+  if (Object.keys(e).length > 0) return;
+
+  setLoading(true);
+
+  try {
+    const response = await fetch(
+      "http://localhost:8089/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mobile,
+          password,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    setLoading(false);
+
+    if (response.ok) {
+
+      // save token if backend returns JWT
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // save user if backend returns user object
+      localStorage.setItem(
+  "user",
+  JSON.stringify(data)
+);
+
+      // navigate after login
+      onLogin(data);
+
+    } else {
+      setAuthError(
+        data.message ||
+        "Invalid mobile number or password"
+      );
+    }
+
+  } catch (error) {
+
+    setLoading(false);
+
+    console.error(error);
+
+    setAuthError(
+      "Unable to connect to server. Please try again."
+    );
+  }
+};
 
   return (
     <>

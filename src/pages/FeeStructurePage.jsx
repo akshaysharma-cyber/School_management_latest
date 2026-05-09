@@ -1,10 +1,7 @@
 import { useState } from "react";
 
 const DEFAULT_ITEMS = [
-  { id: 1, name: "Tuition Fee", amount: "2500" },
-  { id: 2, name: "Smart Class Fee", amount: "500" },
-  { id: 3, name: "Library Fee", amount: "200" },
-  { id: 4, name: "Sports & Activity Fee", amount: "300" },
+  { id: 1, name: "Tuition Fee", amount: "2500" }, 
 ];
 
 export default function FeeStructurePage({ onBack }) {
@@ -26,7 +23,61 @@ export default function FeeStructurePage({ onBack }) {
     { id: "yearly", label: "Yearly", sub: "Collect fee once a year", badge: "1 Installment", icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.8" /><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.8" /><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.8" /><polyline points="9 16 11 18 15 14" stroke="currentColor" strokeWidth="1.8" /></svg> },
   ];
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const user = JSON.parse(localStorage.getItem("user"));
+
+const handleSave = async () => {
+  try {
+
+    const payload = {
+      schoolId: user.schoolId,
+
+      className: classVal
+        .replace("Class ", "")
+        .replace(/[A-Z]/g, "")
+        .trim(),
+
+      academicYear: year.replace(/\s/g, ""),
+
+      frequency: freq.toUpperCase(),
+
+      items: items.map((item) => ({
+        componentName: item.name,
+        amount: parseFloat(item.amount) || 0,
+      })),
+    };
+
+    console.log("FEE PAYLOAD:", payload);
+
+    const response = await fetch(
+      "http://localhost:8089/api/fees/structure",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to save fee structure");
+    }
+
+    const data = await response.text();
+
+    console.log("SAVE RESPONSE:", data);
+
+    setSaved(true);
+
+    setTimeout(() => {
+      setSaved(false);
+    }, 2500);
+
+  } catch (error) {
+    console.error("Error saving fee structure:", error);
+    alert("Failed to save fee structure");
+  }
+};
 
   const selectStyle = { width: "100%", padding: "11px 14px", border: "1.5px solid #e8ecf4", borderRadius: 10, fontSize: 14, color: "#1a2744", fontFamily: "inherit", outline: "none", background: "#fff", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpolyline points='6 9 12 15 18 9' stroke='%238898b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36, cursor: "pointer" };
 
@@ -56,7 +107,7 @@ export default function FeeStructurePage({ onBack }) {
           <div>
             <label style={{ fontSize: 13, fontWeight: 600, color: "#374162", marginBottom: 5, display: "block" }}>Class <span style={{ color: "#e53e3e" }}>*</span></label>
             <select className="fee-input" style={selectStyle} value={classVal} onChange={e => setClassVal(e.target.value)}>
-              {["Class 1A", "Class 2A", "Class 3A", "Class 4A", "Class 5A", "Class 5B"].map(c => <option key={c}>{c}</option>)}
+              {["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6","Class 7","Class 8","Class 9","Class 10"].map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
           <div>

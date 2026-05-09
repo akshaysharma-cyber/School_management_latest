@@ -1,43 +1,107 @@
-import { useState } from "react";
+  import React, { useState, useEffect } from "react";
 
-const STUDENTS = [
-  { id: 1, name: "Rahul Sharma", initials: "RS", color: "#eef0fd", textColor: "#4361ee" },
-  { id: 2, name: "Priya Singh", initials: "PS", color: "#fff4eb", textColor: "#f4a261" },
-  { id: 3, name: "Aman Verma", initials: "AV", color: "#e8faf9", textColor: "#2ec4b6" },
-  { id: 4, name: "Sneha Kumari", initials: "SK", color: "#f0ecff", textColor: "#7b61ff" },
-  { id: 5, name: "Rohan Kumar", initials: "RK", color: "#fff4eb", textColor: "#f4a261" },
-  { id: 6, name: "Neha Patel", initials: "NP", color: "#eef0fd", textColor: "#4361ee" },
-  { id: 7, name: "Vikram Singh", initials: "VI", color: "#f0ecff", textColor: "#7b61ff" },
-  { id: 8, name: "Aarav Ali", initials: "AA", color: "#e8faf9", textColor: "#2ec4b6" },
-  { id: 9, name: "Meera Joshi", initials: "MJ", color: "#eef0fd", textColor: "#4361ee" },
-  { id: 10, name: "Arjun Mehta", initials: "AM", color: "#fff4eb", textColor: "#f4a261" },
-];
+
+
+
+
+
 
 export default function AttendancePage() {
-  const [attendance, setAttendance] = useState(() => {
-    const init = {};
-    STUDENTS.forEach((s, i) => { init[s.id] = i % 4 !== 1 && i % 4 !== 4; });
-    return init;
-  });
+  const [students, setStudents] = useState([]);
+  const [attendance, setAttendance] = useState({});
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [saved, setSaved] = useState(false);
-  const [selectedClass, setSelectedClass] = useState("Class 5 - A");
+  const [className, setClassName] = useState("10");
+const [section, setSection] = useState("A");
+const user = JSON.parse(localStorage.getItem("user"));
+
+
+
+  useEffect(() => {
+  fetchStudents();
+}, [className, section]);
+
+  const fetchStudents = async (schid=user.schoolId,cls = className, sec = section) => {
+  try {
+    const url = `http://localhost:8089/api/attendance/students?schoolId=${schid}&className=${cls}&section=${sec}`;
+
+    console.log("FETCH URL:", url);
+
+    const response = await fetch(url);
+
+    const data = await response.json();
+    console.log("API RESPONSE:", data);
+
+    setStudents(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("Error fetching students:", error);
+  }
+};
 
   const toggle = (id) => setAttendance(a => ({ ...a, [id]: !a[id] }));
-  const markAll = (val) => setAttendance(a => { const n = { ...a }; STUDENTS.forEach(s => n[s.id] = val); return n; });
+  const markAll = (val) => setAttendance(a => { const n = { ...a }; students.forEach(s => n[s.id] = val); return n; });
 
   const presentCount = Object.values(attendance).filter(Boolean).length;
-  const absentCount = STUDENTS.length - presentCount;
-  const pct = Math.round((presentCount / STUDENTS.length) * 100);
+  const absentCount = students.length - presentCount;
+  const pct = Math.round((presentCount / students.length) * 100);
 
-  const filtered = STUDENTS.filter(s => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || (filter === "present" ? attendance[s.id] : !attendance[s.id]);
-    return matchSearch && matchFilter;
-  });
+  const filtered = students.filter(s => {
+  const name = (s.fullName || "").toLowerCase();
+  const matchSearch = name.includes(search.toLowerCase());
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const matchFilter =
+    filter === "all" ||
+    (filter === "present" ? attendance[s.id] : !attendance[s.id]);
+
+  return matchSearch && matchFilter;
+});
+
+  const handleSave = async () => {
+  try {
+    const payload = {
+      schoolId: user.schoolId,
+      className: className,
+      section: section,
+      date: new Date().toISOString().split("T")[0],
+
+      markedStudents: students.map((s) => ({
+        studentId: s.id,
+        status: attendance[s.id] ? "PRESENT" : "ABSENT",
+      })),
+    };
+
+    console.log("SAVE PAYLOAD:", payload);
+
+    const response = await fetch(
+      "http://localhost:8089/api/attendance/mark",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to save attendance");
+    }
+
+    const data = await response.json();
+    console.log("SAVE RESPONSE:", data);
+
+    setSaved(true);
+
+    setTimeout(() => {
+      setSaved(false);
+    }, 2500);
+
+  } catch (error) {
+    console.error("Error saving attendance:", error);
+    alert("Failed to save attendance");
+  }
+};
 
   return (
     <div>
@@ -50,12 +114,54 @@ export default function AttendancePage() {
           <span style={{ fontSize: 13, fontWeight: 600, color: "#1a2744" }}>Monday, 10 June 2024</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8898b8" strokeWidth="2" /></svg>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", borderRadius: 12, padding: "10px 16px", boxShadow: "0 2px 8px rgba(67,97,238,0.07)", minWidth: 180 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="#8898b8" strokeWidth="1.8" /><path d="M6 12v5c3 3 9 3 12 0v-5" stroke="#8898b8" strokeWidth="1.8" /></svg>
-          <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} style={{ border: "none", outline: "none", fontSize: 13, fontWeight: 600, color: "#1a2744", background: "none", cursor: "pointer", fontFamily: "inherit" }}>
-            {["Class 5 - A", "Class 5 - B", "Class 4 - A", "Class 3 - A"].map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+  
+  {/* Class */}
+  <select
+    value={className}
+    onChange={(e) => setClassName(e.target.value)}
+    style={{
+      border: "none",
+      outline: "none",
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#1a2744",
+      background: "none",
+      cursor: "pointer",
+      fontFamily: "inherit"
+    }}
+  >
+    {["10", "9", "8", "7","6","5","4","3","2","1"].map(c => (
+      <option key={c} value={c}>
+        Class {c}
+      </option>
+    ))}
+  </select>
+
+  {/* Section */}
+  <select
+    value={section}
+    onChange={(e) => setSection(e.target.value)}
+    style={{
+      border: "none",
+      outline: "none",
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#1a2744",
+      background: "none",
+      cursor: "pointer",
+      fontFamily: "inherit"
+    }}
+  >
+    {["A", "B", "C"].map(s => (
+      <option key={s} value={s}>
+        Section {s}
+      </option>
+    ))}
+  </select>
+
+</div>
         <button style={{ marginLeft: "auto", background: "#4361ee", color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="18" y1="20" x2="18" y2="10" stroke="#fff" strokeWidth="2" /><line x1="12" y1="20" x2="12" y2="4" stroke="#fff" strokeWidth="2" /><line x1="6" y1="20" x2="6" y2="14" stroke="#fff" strokeWidth="2" /></svg>
           View Report
@@ -65,7 +171,7 @@ export default function AttendancePage() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Students", value: STUDENTS.length, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#4361ee" strokeWidth="1.8" /><circle cx="9" cy="7" r="4" stroke="#4361ee" strokeWidth="1.8" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#4361ee" strokeWidth="1.8" /><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#4361ee" strokeWidth="1.8" /></svg>, bg: "#eef0fd", valueColor: "#1a2744" },
+          { label: "Total Students", value: students.length, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#4361ee" strokeWidth="1.8" /><circle cx="9" cy="7" r="4" stroke="#4361ee" strokeWidth="1.8" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#4361ee" strokeWidth="1.8" /><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#4361ee" strokeWidth="1.8" /></svg>, bg: "#eef0fd", valueColor: "#1a2744" },
           { label: "Present", value: presentCount, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#22c55e" strokeWidth="1.8" /><polyline points="9 12 11 14 15 10" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" /></svg>, bg: "#f0fdf4", valueColor: "#22c55e" },
           { label: "Absent", value: absentCount, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="1.8" /><line x1="15" y1="9" x2="9" y2="15" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" /><line x1="9" y1="9" x2="15" y2="15" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" /></svg>, bg: "#fef2f2", valueColor: "#ef4444" },
           { label: "Attendance Percentage", value: `${pct}%`, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#f4a261" strokeWidth="1.8" /><path d="M12 6v6l4 2" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round" /></svg>, bg: "#fff8f0", valueColor: "#f4a261" },
@@ -104,19 +210,28 @@ export default function AttendancePage() {
         </div>
 
         {/* Table Header */}
-        <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 140px 100px", padding: "12px 24px", background: "#fafbff", borderBottom: "1px solid #f5f6fc" }}>
-          {["Roll No.", "Student Name", "Status", "Action"].map(h => (
+        <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px 100px", padding: "12px 24px", background: "#fafbff", borderBottom: "1px solid #f5f6fc" }}>
+          {["Admission No.", "Student Name", "Status", "Action"].map(h => (
             <span key={h} style={{ fontSize: 12.5, fontWeight: 700, color: "#8898b8", textTransform: "uppercase", letterSpacing: 0.5 }}>{h}</span>
           ))}
         </div>
 
         {/* Rows */}
         {filtered.map((s, i) => (
-          <div key={s.id} style={{ display: "grid", gridTemplateColumns: "80px 1fr 140px 100px", padding: "14px 24px", borderBottom: i < filtered.length - 1 ? "1px solid #f5f6fc" : "none", alignItems: "center" }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#8898b8" }}>{s.id}</span>
+          <div key={s.admissionNumber} style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px 100px", padding: "14px 24px", borderBottom: i < filtered.length - 1 ? "1px solid #f5f6fc" : "none", alignItems: "center" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#8898b8" }}>
+  {s.admissionNumber}
+</span>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: s.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: s.textColor, flexShrink: 0 }}>{s.initials}</div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#1a2744" }}>{s.name}</span>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: s.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: s.textColor, flexShrink: 0 }}
+              >{(s.fullName || "")
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()}</div>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#1a2744" }}>
+  {s.fullName}
+</span>
             </div>
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 14px", borderRadius: 20, fontSize: 12.5, fontWeight: 700, background: attendance[s.id] ? "#f0fdf4" : "#fef2f2", color: attendance[s.id] ? "#22c55e" : "#ef4444", width: "fit-content" }}>
               {attendance[s.id] ? "Present" : "Absent"}

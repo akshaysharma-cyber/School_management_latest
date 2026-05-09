@@ -25,11 +25,57 @@ export default function AddTeacherPage({ onBack }) {
     return e;
   };
 
-  const handleSubmit = () => {
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+  const handleSubmit = async () => {
+  const e = validate();
+
+  if (Object.keys(e).length) {
+    setErrors(e);
+    return;
+  }
+
+  try {
+    // Get logged in user data
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const payload = {
+      schoolId: user.schoolId, // same school id
+      userId: user.id, // same logged in user id
+      fullName: form.fullName,
+      email: form.email,
+      mobile: form.phone,
+      password: form.password,
+      dateOfBirth: form.dob,
+      gender: form.gender,
+      address: form.address,
+      employeeId: form.employeeId,
+      qualification: form.qualification,
+      subject: form.subject,
+      joiningDate: form.joiningDate
+    };
+
+    const response = await fetch("http://localhost:8089/api/teachers/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add teacher");
+    }
+
+    const data = await response.json();
+
+    console.log("Teacher Added:", data);
+
     setSubmitted(true);
-  };
+
+  } catch (error) {
+    console.error(error);
+    alert("Error adding teacher");
+  }
+};
 
   if (submitted) return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
