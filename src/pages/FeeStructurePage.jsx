@@ -79,6 +79,73 @@ const handleSave = async () => {
   }
 };
 
+
+const handleAssignFee = async () => {
+
+  try {
+
+    const user = JSON.parse(
+      localStorage.getItem("user")
+    );
+
+    const payload = {
+
+      schoolId: user.schoolId,
+
+      className: classVal
+        .replace("Class ", "")
+        .trim(),
+
+      section: "A",
+
+      academicYear: year.replace(/\s/g, "")
+
+    };
+
+    console.log(
+      "ASSIGN PAYLOAD:",
+      payload
+    );
+
+    const response = await fetch(
+      "http://localhost:8089/api/fees/assign-class",
+      {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(payload)
+
+      }
+    );
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      alert(errorText);
+
+      return;
+    }
+
+    const message =
+      await response.text();
+
+    alert(message);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("Error assigning fee");
+
+  }
+};
+
   const selectStyle = { width: "100%", padding: "11px 14px", border: "1.5px solid #e8ecf4", borderRadius: 10, fontSize: 14, color: "#1a2744", fontFamily: "inherit", outline: "none", background: "#fff", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpolyline points='6 9 12 15 18 9' stroke='%238898b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36, cursor: "pointer" };
 
   return (
@@ -191,6 +258,24 @@ const handleSave = async () => {
 
       <div style={{ display: "flex", gap: 12, paddingBottom: 32 }}>
         <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+        {/* Assign Fee Button */}
+  <button
+    onClick={handleAssignFee}
+    style={{
+      background: "#7b61ff",
+      color: "#fff",
+      border: "none",
+      borderRadius: 10,
+      padding: "11px 28px",
+      fontWeight: 700,
+      fontSize: 14,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      boxShadow: "0 4px 12px rgba(123,97,255,0.3)"
+    }}
+  >
+    Assign Fee To Class
+  </button>
         <button onClick={handleSave} style={{ background: saved ? "#22c55e" : "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 12px ${saved ? "rgba(34,197,94,0.3)" : "rgba(67,97,238,0.3)"}`, transition: "all 0.2s" }}>
           {saved ? "✓ Saved!" : "Save Fee Structure"}
         </button>
