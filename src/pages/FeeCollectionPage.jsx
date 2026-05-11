@@ -1,4 +1,5 @@
-import { useState } from "react";
+//import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const PAYMENTS = [
   { id: 1, initials: "RS", color: "#eef0fd", textColor: "#4361ee", name: "Rahul Sharma", classVal: "Class 5A", amount: "₹ 5,000", date: "10 Jun 2024", status: "Paid" },
@@ -18,6 +19,147 @@ const CLASS_DATA = [
 export default function FeeCollectionPage({ onNavigate }) {
   const [page, setPage] = useState(1);
   const [showCollect, setShowCollect] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [dueAmount, setDueAmount] = useState(0);
+  const [newPaymentAmount, setNewPaymentAmount] = useState("");
+  const [studentFeeId, setStudentFeeId] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [paymentMode, setPaymentMode] = useState("CASH");
+  const [remarks, setRemarks] = useState("");
+
+
+
+
+
+  
+
+const fetchStudents = async (className) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const response = await fetch(
+      `http://localhost:8089/api/students/by-class/${user.schoolId}/${className}`
+    );
+
+    const data = await response.json();
+
+    setStudents(data);
+  } catch (error) {
+    console.error("Error fetching students:", error);
+  }
+};
+
+
+const fetchFeeDetails = async (studentId) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const response = await fetch(
+      `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
+    );
+
+    const data = await response.json();
+    setStudentFeeId(data.id);
+
+    setTotalAmount(data.totalAmount || 0);
+    setPaidAmount(data.paidAmount || 0);
+    setDueAmount(data.dueAmount || 0);
+
+  } catch (error) {
+    console.error("Error fetching fee details:", error);
+  }
+};
+
+
+const handleCollectFee = async () => {
+
+  try {
+
+    console.log(studentFeeId);
+    console.log("Student Fee ID:", studentFeeId);
+
+    const payload = {
+
+      studentFeeId: studentFeeId,
+
+      amount: Number(newPaymentAmount),
+
+      paymentDate: paymentDate,
+
+      paymentMode: paymentMode.toUpperCase(),
+
+      remarks: remarks
+
+    };
+
+    console.log(payload);
+
+    const response = await fetch(
+      "http://localhost:8089/api/fees/collect",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const data = await response.text();
+
+    if (response.ok) {
+
+      alert(data);
+
+      fetchFeeDetails(selectedStudent);
+
+      setNewPaymentAmount("");
+
+    } else {
+
+      alert(data);
+    }
+
+  } catch (error) {
+
+    console.error("Collect fee error:", error);
+
+    alert("Error collecting fee");
+  }
+};
+   const labelStyle = {
+    display: "block",
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#334155"
+  };
+
+  const inputStyle = {
+    width: "100%",
+    height: 56,
+    border: "1.5px solid #dbe2ea",
+    borderRadius: 14,
+    padding: "0 16px",
+    fontSize: 14,
+    outline: "none",
+    boxSizing: "border-box",
+    background: "#fff"
+  };
+
+  const readonlyStyle = {
+    ...inputStyle,
+    background: "#f8fafc",
+    color: "#475569"
+  };
 
   // Simple donut chart using SVG
   const DonutChart = () => {
@@ -151,23 +293,402 @@ export default function FeeCollectionPage({ onNavigate }) {
       </div>
 
       {/* Collect Fee Modal */}
-      {showCollect && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(26,39,68,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={() => setShowCollect(false)}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: 32, width: 440, boxShadow: "0 20px 60px rgba(67,97,238,0.2)" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800, color: "#1a2744" }}>Collect Fee</h3>
-            {[["Student Name", "Search student..."], ["Amount (₹)", "Enter amount"], ["Receipt No.", "Auto-generated"]].map(([label, placeholder]) => (
-              <div key={label} style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "#374162", marginBottom: 5, display: "block" }}>{label}</label>
-                <input placeholder={placeholder} style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e8ecf4", borderRadius: 10, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
-              </div>
-            ))}
-            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-              <button onClick={() => setShowCollect(false)} style={{ flex: 1, background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-              <button onClick={() => setShowCollect(false)} style={{ flex: 1, background: "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Collect</button>
-            </div>
+      {/* Collect Fee Modal */}
+{showCollect && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(15,23,42,0.55)",
+      zIndex: 1000,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+      overflowY: "auto"
+    }}
+    onClick={() => setShowCollect(false)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        width: "100%",
+        maxWidth: 1180,
+        background: "#fff",
+        borderRadius: 28,
+        padding: 30,
+        boxSizing: "border-box",
+        maxHeight: "95vh",
+        overflowY: "auto"
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 28
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 28,
+              fontWeight: 800,
+              color: "#0f172a"
+            }}
+          >
+            Collect Fee
+          </h2>
+
+          <p
+            style={{
+              marginTop: 6,
+              color: "#64748b",
+              fontSize: 14
+            }}
+          >
+            Record student fee payment and generate receipt
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowCollect(false)}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            border: "1px solid #e2e8f0",
+            background: "#fff",
+            cursor: "pointer",
+            fontSize: 20
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Student Information */}
+      
+<div
+  style={{
+    border: "1px solid #e2e8f0",
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 24
+  }}
+>
+  <h3
+    style={{
+      margin: "0 0 22px",
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#0f172a"
+    }}
+  >
+    Student Information
+  </h3>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 20
+    }}
+  >
+    {/* Class */}
+    <div>
+      <label style={labelStyle}>Class *</label>
+
+       <select
+    style={inputStyle}
+    value={selectedClass}
+    onChange={(e) => {
+      setSelectedClass(e.target.value);
+      fetchStudents(e.target.value);
+    }}
+  >
+    <option value="">Select Class</option>
+    <option value="10">Class 10</option>
+    <option value="9">Class 9</option>
+    <option value="8">Class 8</option>
+    <option value="7">Class 7</option>
+    <option value="6">Class 6</option>
+    <option value="5">Class 5</option>
+    <option value="4">Class 4</option>
+    <option value="3">Class 3</option>
+    <option value="2">Class 2</option>
+    <option value="2">Class 1</option>
+  </select>
+    </div>
+
+    {/* Student */}
+    <div>
+      <label style={labelStyle}>Student *</label>
+
+    <select
+  style={inputStyle}
+  value={selectedStudent}
+  onChange={(e) => {
+    const studentId = e.target.value;
+
+    setSelectedStudent(studentId);
+
+    const student = students.find(
+      (s) => s.id == studentId
+    );
+
+    if (student) {
+  setFatherName(student.parentName || "");
+  setMobileNumber(student.parentMobile || "");
+
+  fetchFeeDetails(studentId);
+}
+  }}
+>
+  <option value="">Select Student</option>
+
+  {students.map((student) => (
+    <option key={student.id} value={student.id}>
+      {student.fullName}
+    </option>
+  ))}
+</select>
+    </div>
+
+    {/* Father Name */}
+    <div>
+      <label style={labelStyle}>Father Name</label>
+
+      <input
+  readOnly
+  value={fatherName}
+  style={readonlyStyle}
+/>
+    </div>
+
+    {/* Mobile */}
+    <div>
+      <label style={labelStyle}>Mobile Number</label>
+
+      <input
+  readOnly
+  value={mobileNumber}
+  style={readonlyStyle}
+/>
+    </div>
+  </div>
+</div>
+
+      {/* Fee Details */}
+      <div
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 24
+        }}
+      >
+        <h3
+          style={{
+            margin: "0 0 22px",
+            fontSize: 18,
+            fontWeight: 700,
+            color: "#0f172a"
+          }}
+        >
+          Fee Details
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 20
+          }}
+        >
+          <div>
+            <label style={labelStyle}>Fee Type *</label>
+            <select style={inputStyle}>
+              <option>Select Fee Type</option>
+              <option>Tuition Fee</option>
+              <option>Transport Fee</option>
+              <option>Exam Fee</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Payment Date *</label>
+            <input
+  type="date"
+  value={paymentDate}
+  onChange={(e) =>
+    setPaymentDate(e.target.value)
+  }
+  style={inputStyle}
+/>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Total Amount</label>
+            <input
+              value={`₹ ${totalAmount}`}
+              readOnly
+              style={readonlyStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Paid Amount *</label>
+            <input
+              value={`₹ ${paidAmount}`}
+              readOnly
+              style={readonlyStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Due Amount</label>
+            <input
+              value={`₹ ${dueAmount}`}
+              readOnly
+              style={readonlyStyle}
+            />
+          </div>
+
+          {/* Enter Amount */}
+<div>
+  <label style={labelStyle}>Enter Amount *</label>
+
+  <input
+    type="number"
+    placeholder="Enter amount"
+    value={newPaymentAmount}
+    onChange={(e) =>
+      setNewPaymentAmount(e.target.value)
+    }
+    style={inputStyle}
+  />
+</div>
+        </div>
+      </div>
+
+      {/* Payment Details */}
+      <div
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 24
+        }}
+      >
+        <h3
+          style={{
+            margin: "0 0 22px",
+            fontSize: 18,
+            fontWeight: 700,
+            color: "#0f172a"
+          }}
+        >
+          Payment Details
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 20
+          }}
+        >
+          <div>
+            <label style={labelStyle}>Payment Method *</label>
+            <select
+  style={inputStyle}
+  value={paymentMode}
+  onChange={(e) =>
+    setPaymentMode(e.target.value)
+  }
+>
+              <option>Select Method</option>
+              <option value="CASH">Cash</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Receipt Number</label>
+            <input
+              value="RCPT-2025-001"
+              readOnly
+              style={readonlyStyle}
+            />
+          </div>
+
+          <div style={{ gridColumn: "1 / span 2" }}>
+            <label style={labelStyle}>Remarks</label>
+            <textarea
+  value={remarks}
+  onChange={(e) =>
+    setRemarks(e.target.value)
+  }
+              placeholder="Additional notes..."
+              style={{
+                ...inputStyle,
+                height: 110,
+                paddingTop: 14,
+                resize: "none"
+              }}
+            />
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Buttons */}
+      
+<div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: 14
+  }}
+>
+  {/* Cancel Button */}
+  <button
+    onClick={() => setShowCollect(false)}
+    style={{
+      padding: "14px 26px",
+      borderRadius: 12,
+      border: "1px solid #cbd5e1",
+      background: "#fff",
+      color: "#334155",
+      fontWeight: 700,
+      cursor: "pointer"
+    }}
+  >
+    Cancel
+  </button>
+
+  {/* Collect Fee Button */}
+  <button
+    onClick={handleCollectFee}
+    style={{
+      padding: "14px 26px",
+      borderRadius: 12,
+      border: "none",
+      background: "#2563eb",
+      color: "#fff",
+      fontWeight: 700,
+      cursor: "pointer",
+      boxShadow: "0 10px 20px rgba(37,99,235,0.25)"
+    }}
+  >
+    Collect Fee
+  </button>
+</div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
