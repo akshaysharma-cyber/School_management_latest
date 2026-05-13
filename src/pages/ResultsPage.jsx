@@ -1,64 +1,188 @@
-import { useState } from "react";
-
-const EXAMS = ["Unit Test - 1 (2024-25)", "Half Yearly (2024-25)", "Final Exam (2024-25)"];
-const CLASSES = ["Class 3", "Class 4", "Class 5"];
-const SECTIONS = ["A", "B", "C"];
-
-const SUBJECTS = [
-  { name: "Mathematics", max: 100, color: "#4361ee" },
-  { name: "English", max: 100, color: "#2ec4b6" },
-  { name: "Science", max: 100, color: "#7b61ff" },
-];
-
-const STUDENTS_DATA = [
-  { id: "GPS001", roll: "01", name: "Ravi Kumar", math: 78, english: 65, science: 80 },
-  { id: "GPS002", roll: "02", name: "Aman Singh", math: 88, english: 70, science: 75 },
-  { id: "GPS003", roll: "03", name: "Priya Sharma", math: 92, english: 85, science: 90 },
-  { id: "GPS004", roll: "04", name: "Neha Patel", math: 65, english: 60, science: 70 },
-  { id: "GPS005", roll: "05", name: "Arjun Verma", math: 76, english: 72, science: 68 },
-  { id: "GPS006", roll: "06", name: "Sneha Iyer", math: 84, english: 80, science: 78 },
-  { id: "GPS007", roll: "07", name: "Kabir Gupta", math: 90, english: 88, science: 85 },
-  { id: "GPS008", roll: "08", name: "Ananya Das", math: 71, english: 68, science: 74 },
-  { id: "GPS009", roll: "09", name: "Vivaan Shah", math: 86, english: 82, science: 79 },
-  { id: "GPS010", roll: "10", name: "Diya Mehta", math: 79, english: 75, science: 77 },
-];
-
-const PASSING_PCT = 33;
-
-function getGrade(pct) {
-  if (pct >= 91) return { grade: "A1", color: "#2ec4b6", bg: "#e8faf9" };
-  if (pct >= 81) return { grade: "A+", color: "#4361ee", bg: "#eef0fd" };
-  if (pct >= 71) return { grade: "A", color: "#4361ee", bg: "#eef0fd" };
-  if (pct >= 61) return { grade: "B+", color: "#7b61ff", bg: "#f0ecff" };
-  if (pct >= 51) return { grade: "B", color: "#f4a261", bg: "#fff4eb" };
-  if (pct >= 33) return { grade: "C", color: "#f4a261", bg: "#fff4eb" };
-  return { grade: "D", color: "#e53e3e", bg: "#fff5f5" };
-}
+import { useEffect, useState } from "react";
 
 const PAGE_SIZE = 10;
+const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const SECTIONS = ["A", "B", "C"];
+const PASSING_PCT = 33;
 
 export default function ResultsPage({ onBack }) {
-  const [selectedExam, setSelectedExam] = useState(EXAMS[0]);
-  const [selectedClass, setSelectedClass] = useState(CLASSES[2]);
-  const [selectedSection, setSelectedSection] = useState(SECTIONS[0]);
+  const [exams, setExams] = useState([]);
+
+  const [subjects, setSubjects] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [summary, setSummary] = useState({});
+
+  const [selectedExam, setSelectedExam] = useState("");
+  const [selectedClass, setSelectedClass] = useState("6");
+  const [selectedSection, setSelectedSection] = useState("A");
+
   const [activeSubject, setActiveSubject] = useState(0);
   const [page, setPage] = useState(1);
 
-  const getSubjectMarks = (s) => [s.math, s.english, s.science][activeSubject];
+  // FETCH RESULT API
+  useEffect(() => {
 
-  const allMarks = STUDENTS_DATA.map(s => getSubjectMarks(s));
-  const subjectMax = SUBJECTS[activeSubject].max;
-  const classAvg = (allMarks.reduce((a, b) => a + b, 0) / allMarks.length).toFixed(2);
-  const highestMark = Math.max(...allMarks);
-  const lowestMark = Math.min(...allMarks);
-  const topperStudent = STUDENTS_DATA.find(s => getSubjectMarks(s) === highestMark);
-  const lowestStudent = STUDENTS_DATA.find(s => getSubjectMarks(s) === lowestMark);
-  const passed = STUDENTS_DATA.filter(s => (getSubjectMarks(s) / subjectMax) * 100 >= PASSING_PCT).length;
-  const failed = STUDENTS_DATA.length - passed;
-  const passPercent = ((passed / STUDENTS_DATA.length) * 100).toFixed(2);
+    const fetchResults = async () => {
 
-  const totalPages = Math.ceil(STUDENTS_DATA.length / PAGE_SIZE);
-  const pageStudents = STUDENTS_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+      try {
+
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        const res = await fetch(
+          `http://localhost:8089/api/results/full-result?schoolId=${user.schoolId}&examId=${selectedExam}&className=${selectedClass}`
+        );
+
+        const data = await res.json();
+
+        console.log("RESULT DATA =", data);
+
+        setSubjects(data.subjects || []);
+        setStudents(data.students || []);
+        setSummary(data.summary || {});
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (selectedExam) {
+      fetchResults();
+    }
+
+  }, [selectedExam, selectedClass, selectedSection]);
+
+
+
+  // SUBJECT MARKS
+  const getSubjectMarks = (student) => {
+
+    const subjectId = subjects[activeSubject]?.subjectId;
+
+    const found = student.marks?.find(
+      m => m.subjectId === subjectId
+    );
+
+    return found?.marks || 0;
+  };
+
+
+
+  const allMarks = students.map(s => getSubjectMarks(s));
+
+  const subjectMax = subjects[activeSubject]?.maxMarks || 0;
+
+  const highestMark =
+    allMarks.length > 0 ? Math.max(...allMarks) : 0;
+
+  const lowestMark =
+    allMarks.length > 0 ? Math.min(...allMarks) : 0;
+
+  const topperStudent =
+    students.find(s => getSubjectMarks(s) === highestMark);
+
+  const lowestStudent =
+    students.find(s => getSubjectMarks(s) === lowestMark);
+
+
+
+  const totalPages = Math.ceil(students.length / PAGE_SIZE);
+
+  const pageStudents = students.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
+
+  useEffect(() => {
+
+  const fetchExams = async () => {
+
+    try {
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const res = await fetch(
+        `http://localhost:8089/api/exams/All-Exam?schoolId=${user.schoolId}`
+      );
+
+      const data = await res.json();
+
+      setExams(data || []);
+
+      if (data.length > 0) {
+        setSelectedExam(data[0].id);
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchExams();
+
+}, []);
+
+
+const passed = students.filter(
+  s => s.result === "Passed"
+).length;
+
+const failed = students.length - passed;
+
+const passPercent =
+  students.length > 0
+    ? ((passed / students.length) * 100).toFixed(2)
+    : 0;
+
+
+    function getGrade(pct) {
+
+  if (pct >= 91)
+    return {
+      grade: "A1",
+      color: "#2ec4b6",
+      bg: "#e8faf9"
+    };
+
+  if (pct >= 81)
+    return {
+      grade: "A",
+      color: "#4361ee",
+      bg: "#eef0fd"
+    };
+
+  if (pct >= 71)
+    return {
+      grade: "B",
+      color: "#7b61ff",
+      bg: "#f0ecff"
+    };
+
+  if (pct >= 61)
+    return {
+      grade: "C",
+      color: "#f4a261",
+      bg: "#fff4eb"
+    };
+
+  if (pct >= 33)
+    return {
+      grade: "D",
+      color: "#f4a261",
+      bg: "#fff4eb"
+    };
+
+  return {
+    grade: "F",
+    color: "#e53e3e",
+    bg: "#fff5f5"
+  };
+}
+
+const classAvg =
+  summary?.average
+    ? summary.average.toFixed(2)
+    : 0;
 
   return (
     <div>
@@ -107,14 +231,33 @@ export default function ResultsPage({ onBack }) {
         <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Exam</label>
-            <select className="res-select" value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
-              {EXAMS.map(e => <option key={e}>{e}</option>)}
-            </select>
+            <select
+  className="res-select"
+  value={selectedExam}
+  onChange={(e) => setSelectedExam(e.target.value)}
+>
+
+  {exams.map((exam) => (
+
+  <option
+    key={exam.id}
+    value={exam.id}
+  >
+    {exam.examName}
+  </option>
+
+))}
+
+</select>
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Class</label>
             <select className="res-select" value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
-              {CLASSES.map(c => <option key={c}>{c}</option>)}
+              {CLASSES.map(c => (
+  <option key={c} value={c}>
+    {c}
+  </option>
+))}
             </select>
           </div>
           <div>
@@ -127,7 +270,7 @@ export default function ResultsPage({ onBack }) {
             <div style={{ background: "#f0f4ff", borderRadius: 12, padding: "12px 18px", display: "flex", gap: 20 }}>
               <div style={{ textAlign: "center" }}>
                 <p style={{ margin: 0, fontSize: 12, color: "#8898b8", fontWeight: 600 }}>Total Students</p>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#4361ee" }}>{STUDENTS_DATA.length}</p>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#4361ee" }}>{students.length}</p>
               </div>
               <div style={{ width: 1, background: "#e8ecf4" }} />
               <div style={{ textAlign: "center" }}>
@@ -177,7 +320,7 @@ export default function ResultsPage({ onBack }) {
             <p style={{ margin: 0, fontSize: 12, color: "#7b61ff", fontWeight: 700 }}>Pass Percentage</p>
           </div>
           <p style={{ margin: "0 0 2px", fontSize: 28, fontWeight: 800, color: "#7b61ff" }}>{passPercent}%</p>
-          <p style={{ margin: 0, fontSize: 12.5, color: "#7b61ff", fontWeight: 600 }}>{passed} of {STUDENTS_DATA.length} students</p>
+          <p style={{ margin: 0, fontSize: 12.5, color: "#7b61ff", fontWeight: 600 }}>{passed} of {students.length} students</p>
         </div>
       </div>
 
@@ -186,10 +329,10 @@ export default function ResultsPage({ onBack }) {
         {/* Subject Tabs */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ display: "flex", gap: 8 }}>
-            {SUBJECTS.map((s, i) => (
-              <button key={s.name} className="subj-tab" onClick={() => setActiveSubject(i)}
+            {subjects.map((s, i) => (
+              <button key={s.subjectId} className="subj-tab" onClick={() => setActiveSubject(i)}
                 style={{ background: activeSubject === i ? s.color : "transparent", color: activeSubject === i ? "#fff" : s.color, boxShadow: activeSubject === i ? `0 4px 12px ${s.color}44` : "none", border: activeSubject === i ? "none" : `1.5px solid ${s.color}44` }}>
-                {s.name} ({s.max})
+                {s.subjectName} ({s.maxMarks})
               </button>
             ))}
           </div>
@@ -214,10 +357,10 @@ export default function ResultsPage({ onBack }) {
               const gradeInfo = getGrade(parseFloat(pct));
               const isPassed = parseFloat(pct) >= PASSING_PCT;
               return (
-                <tr key={s.id} className="trow" style={{ borderBottom: "1px solid #f5f6fc" }}>
+                <tr key={s.studentId} className="trow" style={{ borderBottom: "1px solid #f5f6fc" }}>
                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#8898b8", fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                  <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#4361ee", fontWeight: 700 }}>{s.id}</td>
-                  <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{s.roll}</td>
+                  <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#4361ee", fontWeight: 700 }}>{s.studentId}</td>
+                  <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{s.rollNo}</td>
                   <td style={{ padding: "13px 14px", fontSize: 14, color: "#1a2744", fontWeight: 600 }}>{s.name}</td>
                   <td style={{ padding: "13px 14px", fontSize: 14, color: "#1a2744", fontWeight: 700 }}>{markObtained}</td>
                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{pct}%</td>
@@ -237,13 +380,15 @@ export default function ResultsPage({ onBack }) {
 
         {/* Pagination */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, flexWrap: "wrap", gap: 10 }}>
-          <span style={{ fontSize: 13, color: "#8898b8" }}>Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, STUDENTS_DATA.length)} of {STUDENTS_DATA.length} students</span>
+          <span style={{ fontSize: 13, color: "#8898b8" }}>Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, students.length)} of {students.length} students</span>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i + 1} className={`page-btn${page === i + 1 ? " active" : ""}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
+           {Array.from({ length: totalPages }, (_, i) => (
+
+  <button
+    key={i + 1} className={`page-btn${page === i + 1 ? " active" : ""}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
             ))}
             <button className="page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
