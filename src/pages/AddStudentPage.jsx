@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+
 
 export default function AddStudentPage({ onBack }) {
   const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const schoolId = loggedUser?.schoolId;
 
+  const [page, setPage] = useState("add"); 
+// add | list | view | edit
+
+const [students, setStudents] = useState([]);
+
+const [selectedStudent, setSelectedStudent] = useState(null);
+
+const [searchTerm, setSearchTerm] = useState("");
+
+const [classFilter, setClassFilter] = useState("");
+
+const [currentPage, setCurrentPage] = useState(1);
+
+const studentsPerPage = 5;
+
   const [form, setForm] = useState({
+     id: null,
     admissionNo: "", fullName: "", dob: "", gender: "", bloodGroup: "",
     category: "", religion: "", nationality: "",
     parentName: "", relationship: "", mobile: "", email: "", address: "",
@@ -61,10 +79,21 @@ export default function AddStudentPage({ onBack }) {
         section: form.section,
       };
 
-      const response = await fetch(
-        "http://localhost:8089/api/students/add",
-        {
-          method: "POST",
+      let url = "http://localhost:8089/api/students/add";
+
+let method = "POST";
+
+if (page === "edit") {
+
+  url = `http://localhost:8089/api/students/update/${form.id}`;
+
+  method = "PUT";
+}
+
+const response = await fetch(
+  url,
+  {
+    method,
           headers: {
             "Content-Type": "application/json",
           },
@@ -75,6 +104,7 @@ export default function AddStudentPage({ onBack }) {
       const data = await response.json();
 
       if (response.ok) {
+         fetchStudents();
         console.log("Student Added:", data);
         setSubmitted(true);
       } else {
@@ -86,6 +116,104 @@ export default function AddStudentPage({ onBack }) {
       alert("Unable to connect to server");
     }
   };
+
+
+  const fetchStudents = async () => {
+
+  try {
+
+    const response = await fetch(
+      `http://localhost:8089/api/students/all?schoolId=${schoolId}`
+    );
+
+    const data = await response.json();
+
+    console.log("Students =", data);
+
+    setStudents(data);
+
+  } catch (error) {
+
+    console.error("Fetch student error:", error);
+
+  }
+};
+
+useEffect(() => {
+  fetchStudents();
+}, []);
+
+const handleView = (student) => {
+
+  setSelectedStudent(student);
+
+  setPage("view");
+};
+
+
+const handleDelete = async (id) => {
+
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this student?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+
+    const response = await fetch(
+      `http://localhost:8089/api/students/delete/${id}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    if (response.ok) {
+
+      alert("Student deleted successfully");
+
+      fetchStudents();
+
+    } else {
+
+      alert("Failed to delete student");
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+};
+
+
+const handleEdit = (student) => {
+
+  setForm({
+    id: student.id,
+
+    admissionNo: student.admissionNumber || "",
+    fullName: student.fullName || "",
+    dob: student.dateOfBirth || "",
+    gender: student.gender || "",
+    bloodGroup: student.bloodGroup || "",
+    category: student.category || "",
+    religion: student.religion || "",
+    nationality: student.nationality || "",
+
+    parentName: student.parentName || "",
+    relationship: student.relationship || "",
+    mobile: student.parentMobile || "",
+    email: student.parentEmail || "",
+    address: student.address || "",
+
+    classVal: student.className || "",
+    section: student.section || ""
+  });
+
+  setPage("edit");
+};
 
   if (submitted) return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
@@ -117,6 +245,356 @@ export default function AddStudentPage({ onBack }) {
       {errors[key] && <p style={errStyle}>{errors[key]}</p>}
     </div>
   );
+
+  const th = {
+  padding: 16,
+  textAlign: "left"
+};
+
+const td = {
+  padding: 16,
+  borderTop: "1px solid #eee"
+};
+
+const viewBtn = {
+  background: "#e0f2fe",
+  color: "#0369a1",
+  border: "none",
+  borderRadius: 8,
+  padding: "8px 12px",
+  cursor: "pointer",
+  fontWeight: 700
+};
+
+const editBtn = {
+  background: "#fef3c7",
+  color: "#92400e",
+  border: "none",
+  borderRadius: 8,
+  padding: "8px 12px",
+  cursor: "pointer",
+  fontWeight: 700
+};
+
+const deleteBtn = {
+  background: "#fee2e2",
+  color: "#b91c1c",
+  border: "none",
+  borderRadius: 8,
+  padding: "8px 12px",
+  cursor: "pointer",
+  fontWeight: 700
+};
+
+if (page === "list") {
+
+  const filteredStudents = students.filter((s) => {
+
+    const matchesSearch =
+      s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.admissionNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesClass =
+      classFilter === "" || s.className === classFilter;
+
+    return matchesSearch && matchesClass;
+  });
+
+  const indexOfLast = currentPage * studentsPerPage;
+
+  const indexOfFirst = indexOfLast - studentsPerPage;
+
+  const currentStudents = filteredStudents.slice(
+    indexOfFirst,
+    indexOfLast
+  );
+
+  const totalPages = Math.ceil(
+    filteredStudents.length / studentsPerPage
+  );
+
+  return (
+
+    <div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 20
+        }}
+      >
+        <h2>Student List</h2>
+
+        <button
+          onClick={() => setPage("add")}
+          style={{
+            background: "#4361ee",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "10px 20px",
+            fontWeight: 700
+          }}
+        >
+          + Add Student
+        </button>
+      </div>
+
+      {/* SEARCH */}
+
+      <div
+        style={{
+          display: "flex",
+          gap: 15,
+          marginBottom: 20
+        }}
+      >
+
+        <input
+          placeholder="Search student"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            flex: 1,
+            padding: 12,
+            borderRadius: 10,
+            border: "1px solid #ddd"
+          }}
+        />
+
+        <select
+          value={classFilter}
+          onChange={(e) => setClassFilter(e.target.value)}
+          style={{
+            padding: 12,
+            borderRadius: 10,
+            border: "1px solid #ddd"
+          }}
+        >
+          <option value="">All Classes</option>
+
+          {[
+            "Class 1",
+            "Class 2",
+            "Class 3",
+            "Class 4",
+            "Class 5"
+          ].map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+
+      </div>
+
+      {/* TABLE */}
+
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          overflow: "hidden"
+        }}
+      >
+
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse"
+          }}
+        >
+
+          <thead
+            style={{
+              background: "#f5f7ff"
+            }}
+          >
+            <tr>
+
+              <th style={th}>Admission No</th>
+              <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+  Name
+</th>
+              <th style={th}>Class</th>
+              <th style={th}>Mobile</th>
+              <th style={th}>Actions</th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {currentStudents.map((student) => (
+
+              <tr key={student.id}>
+
+                <td style={td}>
+                  {student.admissionNumber}
+                </td>
+
+                <td style={td}>
+                  {student.fullName}
+                </td>
+
+                <td style={td}>
+                  {student.className}
+                </td>
+
+                <td style={td}>
+                  {student.parentMobile}
+                </td>
+
+                <td style={td}>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10
+                    }}
+                  >
+
+                    <button
+                      onClick={() => handleView(student)}
+                      style={viewBtn}
+                    >
+                      View
+                    </button>
+
+                    <button
+                      onClick={() => handleEdit(student)}
+                      style={editBtn}
+                    >
+                      Update
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(student.id)}
+                      style={deleteBtn}
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      {/* PAGINATION */}
+
+      <div
+        style={{
+          marginTop: 20,
+          display: "flex",
+          justifyContent: "center",
+          gap: 10
+        }}
+      >
+
+        {[...Array(totalPages)].map((_, index) => (
+
+          <button
+            key={index}
+            onClick={() => setCurrentPage(index + 1)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: "none",
+              cursor: "pointer",
+              background:
+                currentPage === index + 1
+                  ? "#4361ee"
+                  : "#eef2ff",
+              color:
+                currentPage === index + 1
+                  ? "#fff"
+                  : "#000"
+            }}
+          >
+            {index + 1}
+          </button>
+
+        ))}
+
+      </div>
+
+    </div>
+  );
+}
+
+
+if (page === "view" && selectedStudent) {
+
+  return (
+
+    <div
+      style={{
+        background: "#fff",
+        padding: 30,
+        borderRadius: 20
+      }}
+    >
+
+      <h2>Student Details</h2>
+
+      <div style={{ lineHeight: 2 }}>
+
+        <p>
+          <b>Name:</b> {selectedStudent.fullName}
+        </p>
+
+        <p>
+          <b>Admission No:</b> {selectedStudent.admissionNumber}
+        </p>
+
+        <p>
+          <b>Class:</b> {selectedStudent.className}
+        </p>
+
+        <p>
+          <b>Section:</b> {selectedStudent.section}
+        </p>
+
+        <p>
+          <b>Parent:</b> {selectedStudent.parentName}
+        </p>
+
+        <p>
+          <b>Mobile:</b> {selectedStudent.parentMobile}
+        </p>
+
+      </div>
+
+      <button
+        onClick={() => setPage("list")}
+        style={{
+          background: "#4361ee",
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: "10px 20px",
+          marginTop: 20
+        }}
+      >
+        Back
+      </button>
+
+    </div>
+  );
+}
+
+
+
+
 
   return (
     <div>
@@ -228,6 +706,20 @@ export default function AddStudentPage({ onBack }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingBottom: 32 }}>
+        <button
+  onClick={() => setPage("list")}
+  style={{
+    background: "#4361ee",
+    color: "#fff",
+    border: "none",
+    borderRadius: 10,
+    padding: "11px 28px",
+    fontWeight: 700,
+    cursor: "pointer"
+  }}
+>
+  View Students
+</button>
         <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
         <button onClick={handleSubmit} style={{ background: "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>Add Student</button>
       </div>

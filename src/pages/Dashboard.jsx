@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddStudentPage from "./AddStudentPage";
 import AddTeacherPage from "./AddTeacherPage";
 import AttendancePage from "./AttendancePage";
@@ -21,12 +21,7 @@ const NAV_ITEMS = [
   { id:"examinations", label:"Examinations", icon:<ExamIcon/>, hasChildren: true },
 ];
 
-const STAT_CARDS = [
-  { label:"Students",    value:"32",       icon:<StudentsStatIcon/>, color:"#4361ee", bg:"#eef0fd", lightBg:"#f0f4ff" },
-  { label:"Teachers",    value:"5",        icon:<TeachersStatIcon/>, color:"#2ec4b6", bg:"#e8faf9", lightBg:"#e8faf9" },
-  { label:"Present Today",value:"28",      icon:<CalendarStatIcon/>, color:"#7b61ff", bg:"#f0ecff", lightBg:"#f0ecff" },
-  { label:"Fees Collected This Month", value:"₹ 12,450", icon:<WalletStatIcon/>, color:"#f4a261", bg:"#fff4eb", lightBg:"#fff4eb" },
-];
+
 
 const NOTICES = [
   { icon:"🔔", iconBg:"#eef0fd", title:"PTM Scheduled", desc:"Parent-Teacher Meeting on 15th June.", time:"2 days ago" },
@@ -46,6 +41,40 @@ export default function Dashboard({ user, onLogout }) {
   const [subPage, setSubPage] = useState(null);
   const [showNotif, setShowNotif] = useState(false);
   const today = new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+  const [dashboardStats, setDashboardStats] = useState({
+  totalStudents: 0,
+  totalTeachers: 0,
+  presentToday: 0,
+  feesCollectedThisMonth: 0,
+});
+
+
+useEffect(() => {
+  fetchDashboardData();
+}, []);
+
+const fetchDashboardData = async () => {
+  try {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    const schoolId = user?.schoolId;
+
+    console.log("School ID =", schoolId);
+    const response = await fetch(
+      `http://localhost:8089/api/dashboard/summary?schoolId=${schoolId}`
+    );
+
+    const data = await response.json();
+
+    console.log("Dashboard Data =", data);
+
+    setDashboardStats(data);
+
+  } catch (error) {
+    console.error("Dashboard fetch error:", error);
+  }
+};
 
   return (
     <div style={{display:"flex",minHeight:"100vh",background:"#f0f2fb",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
@@ -266,17 +295,81 @@ export default function Dashboard({ user, onLogout }) {
           </div>
 
           {/* Stat cards */}
-          <div style={{display:"flex",gap:"16px",marginBottom:"28px",flexWrap:"wrap"}}>
-            {STAT_CARDS.map(c=>(
-              <div className="stat-card" key={c.label}>
-                <div style={{width:52,height:52,borderRadius:"16px",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:"16px"}}>
-                  {c.icon}
-                </div>
-                <p style={{margin:"0 0 4px",fontSize:"32px",fontWeight:800,color:"#1a2744",lineHeight:1}}>{c.value}</p>
-                <p style={{margin:0,fontSize:"14px",color:"#8898b8",fontWeight:500}}>{c.label}</p>
-              </div>
-            ))}
-          </div>
+          {/* Stat cards */}
+<div style={{display:"flex",gap:"16px",marginBottom:"28px",flexWrap:"wrap"}}>
+
+  {[
+    {
+      label:"Students",
+      value:dashboardStats.totalStudents,
+      icon:<StudentsStatIcon/>,
+      bg:"#eef0fd"
+    },
+    {
+      label:"Teachers",
+      value:dashboardStats.totalTeachers,
+      icon:<TeachersStatIcon/>,
+      bg:"#e8faf9"
+    },
+    {
+      label:"Present Today",
+      value:dashboardStats.presentToday,
+      icon:<CalendarStatIcon/>,
+      bg:"#f0ecff"
+    },
+    {
+      label:"Fees Collected This Month",
+      value:`₹ ${dashboardStats.feesCollectedThisMonth}`,
+      icon:<WalletStatIcon/>,
+      bg:"#fff4eb"
+    }
+  ].map((c,index)=>(
+
+    <div className="stat-card" key={index}>
+
+      <div
+        style={{
+          width:52,
+          height:52,
+          borderRadius:"16px",
+          background:c.bg,
+          display:"flex",
+          alignItems:"center",
+          justifyContent:"center",
+          marginBottom:"16px"
+        }}
+      >
+        {c.icon}
+      </div>
+
+      <p
+        style={{
+          margin:"0 0 4px",
+          fontSize:"32px",
+          fontWeight:800,
+          color:"#1a2744",
+          lineHeight:1
+        }}
+      >
+        {c.value}
+      </p>
+
+      <p
+        style={{
+          margin:0,
+          fontSize:"14px",
+          color:"#8898b8",
+          fontWeight:500
+        }}
+      >
+        {c.label}
+      </p>
+
+    </div>
+
+  ))}
+
+</div>
 
           {/* Bottom row */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px"}}>
