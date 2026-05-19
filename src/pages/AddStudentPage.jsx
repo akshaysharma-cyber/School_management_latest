@@ -6,27 +6,28 @@ export default function AddStudentPage({ onBack }) {
   const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const schoolId = loggedUser?.schoolId;
 
-  const [page, setPage] = useState("add"); 
-// add | list | view | edit
+  const [page, setPage] = useState("add");
+  // add | list | view | edit
 
-const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState([]);
 
-const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
-const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-const [classFilter, setClassFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("");
 
-const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
-const studentsPerPage = 5;
+  const studentsPerPage = 5;
 
   const [form, setForm] = useState({
-     id: null,
+    id: null,
     admissionNo: "", fullName: "", dob: "", gender: "", bloodGroup: "",
     category: "", religion: "", nationality: "",
     parentName: "", relationship: "", mobile: "", email: "", address: "",
-    classVal: "", section: ""
+    classVal: "", section: "", studentPhoto: null,
+    birthCertificate: null
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -49,134 +50,86 @@ const studentsPerPage = 5;
 
   const handleSubmit = async () => {
 
-    const e = validate();
-    if (Object.keys(e).length) {
-      setErrors(e);
-      return;
-    }
+  const e = validate();
 
-    try {
-
-      const payload = {
-        schoolId: schoolId,   // 🔥 FIXED
-
-        admissionNumber: form.admissionNo,
-        fullName: form.fullName,
-        dateOfBirth: form.dob,
-        gender: form.gender,
-        bloodGroup: form.bloodGroup,
-        category: form.category,
-        religion: form.religion,
-        nationality: form.nationality,
-
-        parentName: form.parentName,
-        relationship: form.relationship,
-        parentMobile: form.mobile,
-        parentEmail: form.email,
-        address: form.address,
-
-        className: form.classVal,
-        section: form.section,
-      };
-
-      let url = "http://localhost:8089/api/students/add";
-
-let method = "POST";
-
-if (page === "edit") {
-
-  url = `http://localhost:8089/api/students/update/${form.id}`;
-
-  method = "PUT";
-}
-
-const response = await fetch(
-  url,
-  {
-    method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-         fetchStudents();
-        console.log("Student Added:", data);
-        setSubmitted(true);
-      } else {
-        alert(data.message || "Failed to add student");
-      }
-
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Unable to connect to server");
-    }
-  };
-
-
-  const fetchStudents = async () => {
+  if (Object.keys(e).length) {
+    setErrors(e);
+    return;
+  }
 
   try {
 
+    const payload = {
+
+      schoolId: schoolId,
+
+      admissionNumber: form.admissionNo,
+      fullName: form.fullName,
+      dateOfBirth: form.dob,
+      gender: form.gender,
+      bloodGroup: form.bloodGroup,
+
+      category: form.category,
+      religion: form.religion,
+      nationality: form.nationality,
+
+      parentName: form.parentName,
+      relationship: form.relationship,
+      parentMobile: form.mobile,
+      parentEmail: form.email,
+      address: form.address,
+
+      className: form.classVal,
+      section: form.section
+    };
+
+    const formData = new FormData();
+
+    // SEND JSON OBJECT
+    formData.append(
+  "student",
+  JSON.stringify(payload)
+);
+
+    // SEND PHOTO
+    if (form.studentPhoto) {
+
+      formData.append(
+        "studentPhoto",
+        form.studentPhoto
+      );
+    }
+
+    // SEND CERTIFICATE
+    if (form.birthCertificate) {
+
+      formData.append(
+        "birthCertificate",
+        form.birthCertificate
+      );
+    }
+
     const response = await fetch(
-      `http://localhost:8089/api/students/all?schoolId=${schoolId}`
+      "http://localhost:8089/api/students/add",
+      {
+        method: "POST",
+        body: formData
+      }
     );
 
     const data = await response.json();
 
-    console.log("Students =", data);
-
-    setStudents(data);
-
-  } catch (error) {
-
-    console.error("Fetch student error:", error);
-
-  }
-};
-
-useEffect(() => {
-  fetchStudents();
-}, []);
-
-const handleView = (student) => {
-
-  setSelectedStudent(student);
-
-  setPage("view");
-};
-
-
-const handleDelete = async (id) => {
-
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this student?"
-  );
-
-  if (!confirmDelete) return;
-
-  try {
-
-    const response = await fetch(
-      `http://localhost:8089/api/students/delete/${id}`,
-      {
-        method: "DELETE"
-      }
-    );
-
     if (response.ok) {
 
-      alert("Student deleted successfully");
+      alert("Student added successfully");
 
       fetchStudents();
 
+      setSubmitted(true);
+
     } else {
 
-      alert("Failed to delete student");
+      alert(data.message || "Failed");
 
     }
 
@@ -184,36 +137,107 @@ const handleDelete = async (id) => {
 
     console.error(error);
 
+    alert("Server error");
+
   }
 };
 
+  const fetchStudents = async () => {
 
-const handleEdit = (student) => {
+    try {
 
-  setForm({
-    id: student.id,
+      const response = await fetch(
+        `http://localhost:8089/api/students/all?schoolId=${schoolId}`
+      );
 
-    admissionNo: student.admissionNumber || "",
-    fullName: student.fullName || "",
-    dob: student.dateOfBirth || "",
-    gender: student.gender || "",
-    bloodGroup: student.bloodGroup || "",
-    category: student.category || "",
-    religion: student.religion || "",
-    nationality: student.nationality || "",
+      const data = await response.json();
 
-    parentName: student.parentName || "",
-    relationship: student.relationship || "",
-    mobile: student.parentMobile || "",
-    email: student.parentEmail || "",
-    address: student.address || "",
+      console.log("Students =", data);
 
-    classVal: student.className || "",
-    section: student.section || ""
-  });
+      setStudents(data);
 
-  setPage("edit");
-};
+    } catch (error) {
+
+      console.error("Fetch student error:", error);
+
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const handleView = (student) => {
+
+    setSelectedStudent(student);
+
+    setPage("view");
+  };
+
+
+  const handleDelete = async (id) => {
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this student?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+      const response = await fetch(
+        `http://localhost:8089/api/students/delete/${id}`,
+        {
+          method: "DELETE"
+        }
+      );
+
+      if (response.ok) {
+
+        alert("Student deleted successfully");
+
+        fetchStudents();
+
+      } else {
+
+        alert("Failed to delete student");
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+  };
+
+
+  const handleEdit = (student) => {
+
+    setForm({
+      id: student.id,
+
+      admissionNo: student.admissionNumber || "",
+      fullName: student.fullName || "",
+      dob: student.dateOfBirth || "",
+      gender: student.gender || "",
+      bloodGroup: student.bloodGroup || "",
+      category: student.category || "",
+      religion: student.religion || "",
+      nationality: student.nationality || "",
+
+      parentName: student.parentName || "",
+      relationship: student.relationship || "",
+      mobile: student.parentMobile || "",
+      email: student.parentEmail || "",
+      address: student.address || "",
+
+      classVal: student.className || "",
+      section: student.section || ""
+    });
+
+    setPage("edit");
+  };
 
   if (submitted) return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
@@ -247,350 +271,364 @@ const handleEdit = (student) => {
   );
 
   const th = {
-  padding: 16,
-  textAlign: "left"
-};
+    padding: 16,
+    textAlign: "left"
+  };
 
-const td = {
-  padding: 16,
-  borderTop: "1px solid #eee"
-};
+  const td = {
+    padding: 16,
+    borderTop: "1px solid #eee"
+  };
 
-const viewBtn = {
-  background: "#e0f2fe",
-  color: "#0369a1",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const viewBtn = {
+    background: "#e0f2fe",
+    color: "#0369a1",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-const editBtn = {
-  background: "#fef3c7",
-  color: "#92400e",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const editBtn = {
+    background: "#fef3c7",
+    color: "#92400e",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-const deleteBtn = {
-  background: "#fee2e2",
-  color: "#b91c1c",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const deleteBtn = {
+    background: "#fee2e2",
+    color: "#b91c1c",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-if (page === "list") {
+  if (page === "list") {
 
-  const filteredStudents = students.filter((s) => {
+    const filteredStudents = students.filter((s) => {
 
-    const matchesSearch =
-      s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.admissionNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.admissionNumber?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesClass =
-      classFilter === "" || s.className === classFilter;
+      const matchesClass =
+        classFilter === "" || s.className === classFilter;
 
-    return matchesSearch && matchesClass;
-  });
+      return matchesSearch && matchesClass;
+    });
 
-  const indexOfLast = currentPage * studentsPerPage;
+    const indexOfLast = currentPage * studentsPerPage;
 
-  const indexOfFirst = indexOfLast - studentsPerPage;
+    const indexOfFirst = indexOfLast - studentsPerPage;
 
-  const currentStudents = filteredStudents.slice(
-    indexOfFirst,
-    indexOfLast
-  );
+    const currentStudents = filteredStudents.slice(
+      indexOfFirst,
+      indexOfLast
+    );
 
-  const totalPages = Math.ceil(
-    filteredStudents.length / studentsPerPage
-  );
+    const totalPages = Math.ceil(
+      filteredStudents.length / studentsPerPage
+    );
 
-  return (
+    return (
 
-    <div>
+      <div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 20
+          }}
+        >
+          <h2>Student List</h2>
+
+          <button
+            onClick={() => setPage("add")}
+            style={{
+              background: "#4361ee",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 20px",
+              fontWeight: 700
+            }}
+          >
+            + Add Student
+          </button>
+        </div>
+
+        {/* SEARCH */}
+
+        <div
+          style={{
+            display: "flex",
+            gap: 15,
+            marginBottom: 20
+          }}
+        >
+
+          <input
+            placeholder="Search student"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flex: 1,
+              padding: 12,
+              borderRadius: 10,
+              border: "1px solid #ddd"
+            }}
+          />
+
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            style={{
+              padding: 12,
+              borderRadius: 10,
+              border: "1px solid #ddd"
+            }}
+          >
+            <option value="">All Classes</option>
+
+            {[
+              "Nursery",
+              "LKG",
+              "UKG",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12"
+            ].map((c) => (
+              <option key={c} value={c}>
+                {["Nursery", "LKG", "UKG"].includes(c)
+                  ? c
+                  : `Class ${c}`}
+              </option>
+            ))}
+          </select>
+
+        </div>
+
+        {/* TABLE */}
+
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 20,
+            overflow: "hidden"
+          }}
+        >
+
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse"
+            }}
+          >
+
+            <thead
+              style={{
+                background: "#f5f7ff"
+              }}
+            >
+              <tr>
+
+                <th style={th}>Admission No</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Name
+                </th>
+                <th style={th}>Class</th>
+                <th style={th}>Mobile</th>
+                <th style={th}>Actions</th>
+
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {currentStudents.map((student) => (
+
+                <tr key={student.id}>
+
+                  <td style={td}>
+                    {student.admissionNumber}
+                  </td>
+
+                  <td style={td}>
+                    {student.fullName}
+                  </td>
+
+                  <td style={td}>
+                    {student.className}
+                  </td>
+
+                  <td style={td}>
+                    {student.parentMobile}
+                  </td>
+
+                  <td style={td}>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10
+                      }}
+                    >
+
+                      <button
+                        onClick={() => handleView(student)}
+                        style={viewBtn}
+                      >
+                        View
+                      </button>
+
+                      <button
+                        onClick={() => handleEdit(student)}
+                        style={editBtn}
+                      >
+                        Update
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(student.id)}
+                        style={deleteBtn}
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        {/* PAGINATION */}
+
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            justifyContent: "center",
+            gap: 10
+          }}
+        >
+
+          {[...Array(totalPages)].map((_, index) => (
+
+            <button
+              key={index}
+              onClick={() => setCurrentPage(index + 1)}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                border: "none",
+                cursor: "pointer",
+                background:
+                  currentPage === index + 1
+                    ? "#4361ee"
+                    : "#eef2ff",
+                color:
+                  currentPage === index + 1
+                    ? "#fff"
+                    : "#000"
+              }}
+            >
+              {index + 1}
+            </button>
+
+          ))}
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  if (page === "view" && selectedStudent) {
+
+    return (
 
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 20
+          background: "#fff",
+          padding: 30,
+          borderRadius: 20
         }}
       >
-        <h2>Student List</h2>
+
+        <h2>Student Details</h2>
+
+        <div style={{ lineHeight: 2 }}>
+
+          <p>
+            <b>Name:</b> {selectedStudent.fullName}
+          </p>
+
+          <p>
+            <b>Admission No:</b> {selectedStudent.admissionNumber}
+          </p>
+
+          <p>
+            <b>Class:</b> {selectedStudent.className}
+          </p>
+
+          <p>
+            <b>Section:</b> {selectedStudent.section}
+          </p>
+
+          <p>
+            <b>Parent:</b> {selectedStudent.parentName}
+          </p>
+
+          <p>
+            <b>Mobile:</b> {selectedStudent.parentMobile}
+          </p>
+
+        </div>
 
         <button
-          onClick={() => setPage("add")}
+          onClick={() => setPage("list")}
           style={{
             background: "#4361ee",
             color: "#fff",
             border: "none",
             borderRadius: 10,
             padding: "10px 20px",
-            fontWeight: 700
+            marginTop: 20
           }}
         >
-          + Add Student
+          Back
         </button>
-      </div>
-
-      {/* SEARCH */}
-
-      <div
-        style={{
-          display: "flex",
-          gap: 15,
-          marginBottom: 20
-        }}
-      >
-
-        <input
-          placeholder="Search student"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flex: 1,
-            padding: 12,
-            borderRadius: 10,
-            border: "1px solid #ddd"
-          }}
-        />
-
-        <select
-          value={classFilter}
-          onChange={(e) => setClassFilter(e.target.value)}
-          style={{
-            padding: 12,
-            borderRadius: 10,
-            border: "1px solid #ddd"
-          }}
-        >
-          <option value="">All Classes</option>
-
-          {[
-            "Class 1",
-            "Class 2",
-            "Class 3",
-            "Class 4",
-            "Class 5"
-          ].map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
 
       </div>
-
-      {/* TABLE */}
-
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          overflow: "hidden"
-        }}
-      >
-
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse"
-          }}
-        >
-
-          <thead
-            style={{
-              background: "#f5f7ff"
-            }}
-          >
-            <tr>
-
-              <th style={th}>Admission No</th>
-              <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-  Name
-</th>
-              <th style={th}>Class</th>
-              <th style={th}>Mobile</th>
-              <th style={th}>Actions</th>
-
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {currentStudents.map((student) => (
-
-              <tr key={student.id}>
-
-                <td style={td}>
-                  {student.admissionNumber}
-                </td>
-
-                <td style={td}>
-                  {student.fullName}
-                </td>
-
-                <td style={td}>
-                  {student.className}
-                </td>
-
-                <td style={td}>
-                  {student.parentMobile}
-                </td>
-
-                <td style={td}>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 10
-                    }}
-                  >
-
-                    <button
-                      onClick={() => handleView(student)}
-                      style={viewBtn}
-                    >
-                      View
-                    </button>
-
-                    <button
-                      onClick={() => handleEdit(student)}
-                      style={editBtn}
-                    >
-                      Update
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(student.id)}
-                      style={deleteBtn}
-                    >
-                      Delete
-                    </button>
-
-                  </div>
-
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-      {/* PAGINATION */}
-
-      <div
-        style={{
-          marginTop: 20,
-          display: "flex",
-          justifyContent: "center",
-          gap: 10
-        }}
-      >
-
-        {[...Array(totalPages)].map((_, index) => (
-
-          <button
-            key={index}
-            onClick={() => setCurrentPage(index + 1)}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              border: "none",
-              cursor: "pointer",
-              background:
-                currentPage === index + 1
-                  ? "#4361ee"
-                  : "#eef2ff",
-              color:
-                currentPage === index + 1
-                  ? "#fff"
-                  : "#000"
-            }}
-          >
-            {index + 1}
-          </button>
-
-        ))}
-
-      </div>
-
-    </div>
-  );
-}
-
-
-if (page === "view" && selectedStudent) {
-
-  return (
-
-    <div
-      style={{
-        background: "#fff",
-        padding: 30,
-        borderRadius: 20
-      }}
-    >
-
-      <h2>Student Details</h2>
-
-      <div style={{ lineHeight: 2 }}>
-
-        <p>
-          <b>Name:</b> {selectedStudent.fullName}
-        </p>
-
-        <p>
-          <b>Admission No:</b> {selectedStudent.admissionNumber}
-        </p>
-
-        <p>
-          <b>Class:</b> {selectedStudent.className}
-        </p>
-
-        <p>
-          <b>Section:</b> {selectedStudent.section}
-        </p>
-
-        <p>
-          <b>Parent:</b> {selectedStudent.parentName}
-        </p>
-
-        <p>
-          <b>Mobile:</b> {selectedStudent.parentMobile}
-        </p>
-
-      </div>
-
-      <button
-        onClick={() => setPage("list")}
-        style={{
-          background: "#4361ee",
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "10px 20px",
-          marginTop: 20
-        }}
-      >
-        Back
-      </button>
-
-    </div>
-  );
-}
+    );
+  }
 
 
 
@@ -673,7 +711,29 @@ if (page === "view" && selectedStudent) {
           <>
             {field("Class", "classVal", <select className="add-student-input" style={selectStyle(errors.classVal)} value={form.classVal} onChange={e => update("classVal", e.target.value)}>
               <option value="">Select Class</option>
-              {["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"].map(c => <option key={c}>{c}</option>)}
+              {[
+                "Nursery",
+                "LKG",
+                "UKG",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "12"
+              ].map((c) => (
+                <option key={c} value={c}>
+                  {["Nursery", "LKG", "UKG"].includes(c)
+                    ? c
+                    : `Class ${c}`}
+                </option>
+              ))}
             </select>, true)}
             {field("Section", "section", <input className="add-student-input" style={inputStyle(false)} placeholder="e.g., A" value={form.section} onChange={e => update("section", e.target.value)} />)}
           </>
@@ -688,18 +748,66 @@ if (page === "view" && selectedStudent) {
             <div>
               <label style={labelStyle}>Student Photo</label>
               <p style={{ margin: "0 0 8px", fontSize: 12, color: "#b0bbc9" }}>JPG, PNG (Max 2MB)</p>
-              <div style={{ border: "2px dashed #e8ecf4", borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "#fafbff" }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ margin: "0 auto 8px", display: "block" }}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="#b0bbc9" strokeWidth="1.8" /><circle cx="12" cy="13" r="4" stroke="#b0bbc9" strokeWidth="1.8" /></svg>
-                <span style={{ color: "#4361ee", fontWeight: 700, fontSize: 13 }}>Choose File</span>
+              <div
+                style={{
+                  border: "2px dashed #e8ecf4",
+                  borderRadius: 12,
+                  padding: "28px 20px",
+                  textAlign: "center",
+                  background: "#fafbff"
+                }}
+              >
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    update(
+                      "studentPhoto",
+                      e.target.files[0]
+                    )
+                  }
+                />
+
+                {form.studentPhoto && (
+                  <p style={{ marginTop: 10 }}>
+                    {form.studentPhoto.name}
+                  </p>
+                )}
+
               </div>
             </div>
             <div>
               <label style={labelStyle}>Birth Certificate (Optional)</label>
               <p style={{ margin: "0 0 8px", fontSize: 12, color: "#b0bbc9" }}>PDF, JPG, PNG (Max 5MB)</p>
-              <div style={{ border: "2px dashed #e8ecf4", borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "#fafbff" }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ margin: "0 auto 8px", display: "block" }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#b0bbc9" strokeWidth="1.8" /><polyline points="14 2 14 8 20 8" stroke="#b0bbc9" strokeWidth="1.8" /></svg>
-                <span style={{ color: "#4361ee", fontWeight: 700, fontSize: 13 }}>Choose File</span>
-              </div>
+              <div
+  style={{
+    border: "2px dashed #e8ecf4",
+    borderRadius: 12,
+    padding: "28px 20px",
+    textAlign: "center",
+    background: "#fafbff"
+  }}
+>
+
+  <input
+    type="file"
+    accept=".pdf,image/*"
+    onChange={(e) =>
+      update(
+        "birthCertificate",
+        e.target.files[0]
+      )
+    }
+  />
+
+  {form.birthCertificate && (
+    <p style={{ marginTop: 10 }}>
+      {form.birthCertificate.name}
+    </p>
+  )}
+
+</div>
             </div>
           </>
         )}
@@ -707,19 +815,19 @@ if (page === "view" && selectedStudent) {
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingBottom: 32 }}>
         <button
-  onClick={() => setPage("list")}
-  style={{
-    background: "#4361ee",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    padding: "11px 28px",
-    fontWeight: 700,
-    cursor: "pointer"
-  }}
->
-  View Students
-</button>
+          onClick={() => setPage("list")}
+          style={{
+            background: "#4361ee",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "11px 28px",
+            fontWeight: 700,
+            cursor: "pointer"
+          }}
+        >
+          View Students
+        </button>
         <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
         <button onClick={handleSubmit} style={{ background: "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>Add Student</button>
       </div>

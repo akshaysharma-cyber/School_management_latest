@@ -37,8 +37,13 @@ const QUICK_ACTIONS = [
 ];
 
 export default function Dashboard({ user, onLogout }) {
-  const [activePage, setActivePage] = useState("dashboard");
-  const [subPage, setSubPage] = useState(null);
+  const [activePage, setActivePage] = useState(
+  localStorage.getItem("activePage") || "dashboard"
+);
+
+const [subPage, setSubPage] = useState(
+  localStorage.getItem("subPage") || null
+);
   const [showNotif, setShowNotif] = useState(false);
   const today = new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 
@@ -48,6 +53,17 @@ export default function Dashboard({ user, onLogout }) {
   presentToday: 0,
   feesCollectedThisMonth: 0,
 });
+
+
+useEffect(() => {
+  localStorage.setItem("activePage", activePage);
+
+  if (subPage) {
+    localStorage.setItem("subPage", subPage);
+  } else {
+    localStorage.removeItem("subPage");
+  }
+}, [activePage, subPage]);
 
 
 useEffect(() => {
@@ -188,9 +204,29 @@ const fetchDashboardData = async () => {
                 {user?.name?.charAt(0)||"A"}
               </div>
               <div>
-                <p style={{margin:0,fontWeight:700,fontSize:"14px",color:"#1a2744"}}>{user?.name||"Admin"}</p>
-                <p style={{margin:0,fontSize:"12px",color:"#8898b8"}}>Admin</p>
-              </div>
+
+  <h4
+    style={{
+      margin: 0,
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#1a2744"
+    }}
+  >
+    {user?.fullName || "Admin"}
+  </h4>
+
+  <p
+    style={{
+      margin: 0,
+      fontSize: 13,
+      color: "#8898b8"
+    }}
+  >
+    Administrator
+  </p>
+
+</div>
               <button className="logout-btn" onClick={onLogout}>Logout</button>
             </div>
           </div>
@@ -288,7 +324,7 @@ const fetchDashboardData = async () => {
           {/* Welcome */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"28px"}}>
             <div>
-              <h1 style={{margin:"0 0 4px",fontSize:"26px",fontWeight:800,color:"#1a2744"}}>Welcome back, {user?.name?.split(" ")[0]||"Admin"}!</h1>
+              <h1 style={{margin:"0 0 4px",fontSize:"26px",fontWeight:800,color:"#1a2744"}}>Welcome back, {user?.name || "Admin"}!</h1>
               <p style={{margin:0,color:"#8898b8",fontSize:"14.5px"}}>Have a great day at {user?.school||"Greenfield Primary School"}.</p>
             </div>
             <p style={{margin:0,color:"#8898b8",fontSize:"14px",fontWeight:500,flexShrink:0}}>{today}</p>

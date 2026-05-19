@@ -111,7 +111,14 @@ const user = JSON.parse(localStorage.getItem("user"));
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", borderRadius: 12, padding: "10px 16px", boxShadow: "0 2px 8px rgba(67,97,238,0.07)", minWidth: 200 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#8898b8" strokeWidth="1.8" /><line x1="16" y1="2" x2="16" y2="6" stroke="#8898b8" strokeWidth="1.8" /><line x1="8" y1="2" x2="8" y2="6" stroke="#8898b8" strokeWidth="1.8" /><line x1="3" y1="10" x2="21" y2="10" stroke="#8898b8" strokeWidth="1.8" /></svg>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a2744" }}>Monday, 10 June 2024</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a2744" }}>
+  {new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  })}
+</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8898b8" strokeWidth="2" /></svg>
         </div>
 
