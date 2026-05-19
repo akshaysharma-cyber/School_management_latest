@@ -1,13 +1,13 @@
 import { useState } from "react";
 
 const DEFAULT_ITEMS = [
-  { id: 1, name: "Tuition Fee", amount: "2500" }, 
+  { id: 1, name: "Tuition Fee", amount: "2500" },
 ];
 
 export default function FeeStructurePage({ onBack }) {
-  const [classVal, setClassVal] = useState("Class 5A");
-  const [year, setYear] = useState("2024 - 2025");
-  const [freq, setFreq] = useState("monthly");
+  const [classVal, setClassVal] = useState("");
+  const [year, setYear] = useState("");
+  const [freq, setFreq] = useState("yearly");
   const [items, setItems] = useState(DEFAULT_ITEMS);
   const [saved, setSaved] = useState(false);
 
@@ -25,126 +25,126 @@ export default function FeeStructurePage({ onBack }) {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-const handleSave = async () => {
-  try {
+  const handleSave = async () => {
+    try {
 
-    const payload = {
-      schoolId: user.schoolId,
+      const payload = {
+        schoolId: user.schoolId,
 
-      className: classVal
-        .replace("Class ", "")
-        .replace(/[A-Z]/g, "")
-        .trim(),
+        className: classVal
+          .replace("Class ", "")
+          .replace(/[A-Z]/g, "")
+          .trim(),
 
-      academicYear: year.replace(/\s/g, ""),
+        academicYear: year.replace(/\s/g, ""),
 
-      frequency: freq.toUpperCase(),
+        frequency: freq.toUpperCase(),
 
-      items: items.map((item) => ({
-        componentName: item.name,
-        amount: parseFloat(item.amount) || 0,
-      })),
-    };
+        items: items.map((item) => ({
+          componentName: item.name,
+          amount: parseFloat(item.amount) || 0,
+        })),
+      };
 
-    console.log("FEE PAYLOAD:", payload);
+      console.log("FEE PAYLOAD:", payload);
 
-    const response = await fetch(
-      "http://localhost:8089/api/fees/structure",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const response = await fetch(
+        "http://localhost:8089/api/fees/structure",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to save fee structure");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to save fee structure");
+      const data = await response.text();
+
+      console.log("SAVE RESPONSE:", data);
+
+      setSaved(true);
+
+      setTimeout(() => {
+        setSaved(false);
+      }, 2500);
+
+    } catch (error) {
+      console.error("Error saving fee structure:", error);
+      alert("Failed to save fee structure");
     }
-
-    const data = await response.text();
-
-    console.log("SAVE RESPONSE:", data);
-
-    setSaved(true);
-
-    setTimeout(() => {
-      setSaved(false);
-    }, 2500);
-
-  } catch (error) {
-    console.error("Error saving fee structure:", error);
-    alert("Failed to save fee structure");
-  }
-};
+  };
 
 
-const handleAssignFee = async () => {
+  const handleAssignFee = async () => {
 
-  try {
+    try {
 
-    const user = JSON.parse(
-      localStorage.getItem("user")
-    );
+      const user = JSON.parse(
+        localStorage.getItem("user")
+      );
 
-    const payload = {
+      const payload = {
 
-      schoolId: user.schoolId,
+        schoolId: user.schoolId,
 
-      className: classVal
-        .replace("Class ", "")
-        .trim(),
+        className: classVal
+          .replace("Class ", "")
+          .trim(),
 
-      section: "A",
+        section: "A",
 
-      academicYear: year.replace(/\s/g, "")
+        academicYear: year.replace(/\s/g, "")
 
-    };
+      };
 
-    console.log(
-      "ASSIGN PAYLOAD:",
-      payload
-    );
+      console.log(
+        "ASSIGN PAYLOAD:",
+        payload
+      );
 
-    const response = await fetch(
-      "http://localhost:8089/api/fees/assign-class",
-      {
+      const response = await fetch(
+        "http://localhost:8089/api/fees/assign-class",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type": "application/json"
+          },
 
-        body: JSON.stringify(payload)
+          body: JSON.stringify(payload)
 
+        }
+      );
+
+      if (!response.ok) {
+
+        const errorText =
+          await response.text();
+
+        alert(errorText);
+
+        return;
       }
-    );
 
-    if (!response.ok) {
-
-      const errorText =
+      const message =
         await response.text();
 
-      alert(errorText);
+      alert(message);
 
-      return;
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Error assigning fee");
+
     }
-
-    const message =
-      await response.text();
-
-    alert(message);
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert("Error assigning fee");
-
-  }
-};
+  };
 
   const selectStyle = { width: "100%", padding: "11px 14px", border: "1.5px solid #e8ecf4", borderRadius: 10, fontSize: 14, color: "#1a2744", fontFamily: "inherit", outline: "none", background: "#fff", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpolyline points='6 9 12 15 18 9' stroke='%238898b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36, cursor: "pointer" };
 
@@ -173,14 +173,59 @@ const handleAssignFee = async () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div>
             <label style={{ fontSize: 13, fontWeight: 600, color: "#374162", marginBottom: 5, display: "block" }}>Class <span style={{ color: "#e53e3e" }}>*</span></label>
-            <select className="fee-input" style={selectStyle} value={classVal} onChange={e => setClassVal(e.target.value)}>
-              {["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6","Class 7","Class 8","Class 9","Class 10"].map(c => <option key={c}>{c}</option>)}
+            <select
+              className="fee-input"
+              style={selectStyle}
+              value={classVal}
+              onChange={(e) => setClassVal(e.target.value)}
+            >
+              <option value="">Select Class</option>
+
+              {[
+                "Nursery",
+                "LKG",
+                "UKG",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "12"
+              ].map((c) => (
+                <option key={c} value={c}>
+                  {["Nursery", "LKG", "UKG"].includes(c)
+                    ? c
+                    : `Class ${c}`}
+                </option>
+              ))}
             </select>
           </div>
           <div>
             <label style={{ fontSize: 13, fontWeight: 600, color: "#374162", marginBottom: 5, display: "block" }}>Academic Year <span style={{ color: "#e53e3e" }}>*</span></label>
-            <select className="fee-input" style={selectStyle} value={year} onChange={e => setYear(e.target.value)}>
-              {["2024 - 2025", "2025 - 2026", "2023 - 2024"].map(y => <option key={y}>{y}</option>)}
+            <select
+              className="fee-input"
+              style={selectStyle}
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+            >
+              <option value="">Select Academic Year</option>
+
+              {[
+                "2026-2027",
+                "2027-2028",
+                "2028-2029",
+                "2029-2030"
+              ].map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -257,28 +302,32 @@ const handleAssignFee = async () => {
       </div>
 
       <div style={{ display: "flex", gap: 12, paddingBottom: 32 }}>
-        <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-        {/* Assign Fee Button */}
-  <button
-    onClick={handleAssignFee}
-    style={{
-      background: "#7b61ff",
-      color: "#fff",
-      border: "none",
-      borderRadius: 10,
-      padding: "11px 28px",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer",
-      fontFamily: "inherit",
-      boxShadow: "0 4px 12px rgba(123,97,255,0.3)"
-    }}
-  >
-    Assign Fee To Class
-  </button>
+
+
+
         <button onClick={handleSave} style={{ background: saved ? "#22c55e" : "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 12px ${saved ? "rgba(34,197,94,0.3)" : "rgba(67,97,238,0.3)"}`, transition: "all 0.2s" }}>
           {saved ? "✓ Saved!" : "Save Fee Structure"}
         </button>
+        {/* Assign Fee Button */}
+        <button
+          onClick={handleAssignFee}
+          style={{
+            background: "#7b61ff",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "11px 28px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 12px rgba(123,97,255,0.3)"
+          }}
+        >
+          Assign Fee To Class
+        </button>
+
+        <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
       </div>
     </div>
   );

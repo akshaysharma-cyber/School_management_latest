@@ -814,6 +814,7 @@ export default function AddStudentPage({ onBack }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingBottom: 32 }}>
+        <button onClick={handleSubmit} style={{ background: "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>Add Student</button>
         <button
           onClick={() => setPage("list")}
           style={{
@@ -829,7 +830,7 @@ export default function AddStudentPage({ onBack }) {
           View Students
         </button>
         <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-        <button onClick={handleSubmit} style={{ background: "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>Add Student</button>
+        
       </div>
     </div>
   );

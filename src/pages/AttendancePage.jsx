@@ -12,15 +12,26 @@ export default function AttendancePage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [saved, setSaved] = useState(false);
-  const [className, setClassName] = useState("10");
-const [section, setSection] = useState("A");
+  const [className, setClassName] = useState("");
+const [section, setSection] = useState("");
 const user = JSON.parse(localStorage.getItem("user"));
-
+const [attendanceDate, setAttendanceDate] =
+  useState(
+    new Date().toISOString().split("T")[0]
+  );
 
 
   useEffect(() => {
+
   fetchStudents();
-}, [className, section]);
+
+  fetchAttendanceByDate();
+
+}, [
+  className,
+  section,
+  attendanceDate
+]);
 
   const fetchStudents = async (schid=user.schoolId,cls = className, sec = section) => {
   try {
@@ -57,13 +68,48 @@ const user = JSON.parse(localStorage.getItem("user"));
   return matchSearch && matchFilter;
 });
 
+
+const fetchAttendanceByDate = async () => {
+
+  try {
+
+    const response = await fetch(
+
+      `http://localhost:8089/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&section=${section}&date=${attendanceDate}`
+
+    );
+
+    const data = await response.json();
+
+    console.log("DATE ATTENDANCE =", data);
+
+    const attendanceMap = {};
+
+    data.forEach((item) => {
+
+      attendanceMap[item.studentId] =
+        item.status === "PRESENT";
+
+    });
+
+    setAttendance(attendanceMap);
+
+  } catch (error) {
+
+    console.error(
+      "Attendance fetch error:",
+      error
+    );
+  }
+};
+
   const handleSave = async () => {
   try {
     const payload = {
       schoolId: user.schoolId,
       className: className,
       section: section,
-      date: new Date().toISOString().split("T")[0],
+      date: attendanceDate,
 
       markedStudents: students.map((s) => ({
         studentId: s.id,
@@ -109,64 +155,200 @@ const user = JSON.parse(localStorage.getItem("user"));
 
       {/* Filters Row */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", borderRadius: 12, padding: "10px 16px", boxShadow: "0 2px 8px rgba(67,97,238,0.07)", minWidth: 200 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#8898b8" strokeWidth="1.8" /><line x1="16" y1="2" x2="16" y2="6" stroke="#8898b8" strokeWidth="1.8" /><line x1="8" y1="2" x2="8" y2="6" stroke="#8898b8" strokeWidth="1.8" /><line x1="3" y1="10" x2="21" y2="10" stroke="#8898b8" strokeWidth="1.8" /></svg>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a2744" }}>
-  {new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  })}
-</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="#8898b8" strokeWidth="2" /></svg>
-        </div>
+        <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    background: "#fff",
+    borderRadius: 12,
+    padding: "10px 16px",
+    boxShadow: "0 2px 8px rgba(67,97,238,0.07)",
+    minWidth: 260,
+    position: "relative",
+    cursor: "pointer"
+  }}
+>
+
+  {/* CALENDAR ICON */}
+
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke="#8898b8"
+      strokeWidth="1.8"
+    />
+
+    <line
+      x1="16"
+      y1="2"
+      x2="16"
+      y2="6"
+      stroke="#8898b8"
+      strokeWidth="1.8"
+    />
+
+    <line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="6"
+      stroke="#8898b8"
+      strokeWidth="1.8"
+    />
+
+    <line
+      x1="3"
+      y1="10"
+      x2="21"
+      y2="10"
+      stroke="#8898b8"
+      strokeWidth="1.8"
+    />
+  </svg>
+
+  {/* SELECTED DATE */}
+
+  <span
+    style={{
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#1a2744",
+      flex: 1
+    }}
+  >
+    {new Date(attendanceDate).toLocaleDateString(
+      "en-IN",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }
+    )}
+  </span>
+
+  {/* HIDDEN DATE INPUT */}
+
+  <input
+    type="date"
+    value={attendanceDate}
+    onChange={(e) =>
+      setAttendanceDate(e.target.value)
+    }
+    style={{
+      position: "absolute",
+      inset: 0,
+      opacity: 0,
+      cursor: "pointer"
+    }}
+  />
+
+  {/* DROPDOWN ICON */}
+
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <polyline
+      points="6 9 12 15 18 9"
+      stroke="#8898b8"
+      strokeWidth="2"
+    />
+  </svg>
+
+</div>
 
         <div style={{ display: "flex", gap: 10 }}>
   
   {/* Class */}
-  <select
-    value={className}
-    onChange={(e) => setClassName(e.target.value)}
-    style={{
-      border: "none",
-      outline: "none",
-      fontSize: 13,
-      fontWeight: 600,
-      color: "#1a2744",
-      background: "none",
-      cursor: "pointer",
-      fontFamily: "inherit"
-    }}
-  >
-    {["10", "9", "8", "7","6","5","4","3","2","1"].map(c => (
-      <option key={c} value={c}>
-        Class {c}
-      </option>
-    ))}
-  </select>
+  {/* Class Dropdown */}
+<select
+  value={className}
+  onChange={(e) => setClassName(e.target.value)}
+  style={{
+    border: "none",
+    outline: "none",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#1a2744",
+    background: "none",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    padding: "10px 14px",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
+  }}
+>
+  <option value="">Select Class</option>
+
+  {[
+    "Nursery",
+    "LKG",
+    "UKG",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+  ].map((c) => (
+    <option key={c} value={c}>
+      {["Nursery", "LKG", "UKG"].includes(c)
+        ? c
+        : `Class ${c}`}
+    </option>
+  ))}
+</select>
+
+
 
   {/* Section */}
-  <select
-    value={section}
-    onChange={(e) => setSection(e.target.value)}
-    style={{
-      border: "none",
-      outline: "none",
-      fontSize: 13,
-      fontWeight: 600,
-      color: "#1a2744",
-      background: "none",
-      cursor: "pointer",
-      fontFamily: "inherit"
-    }}
-  >
-    {["A", "B", "C"].map(s => (
-      <option key={s} value={s}>
-        Section {s}
-      </option>
-    ))}
-  </select>
+ {/* Section Dropdown */}
+<select
+  value={section}
+  onChange={(e) => setSection(e.target.value)}
+  style={{
+    border: "none",
+    outline: "none",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#1a2744",
+    background: "none",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    padding: "10px 14px",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
+  }}
+>
+  <option value="">Select Section</option>
+
+  {["A", "B", "C", "D"].map((s) => (
+    <option key={s} value={s}>
+      Section {s}
+    </option>
+  ))}
+</select>
 
 </div>
         <button style={{ marginLeft: "auto", background: "#4361ee", color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
