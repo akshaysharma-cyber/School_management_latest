@@ -166,10 +166,8 @@ useEffect(() => {
 
       setExams(Array.isArray(data) ? data : []);
 
-      if (data.length > 0) {
-        setSelectedExam(data[0]);
-        setSubjects(data[0].subjects || []);
-      }
+      setSelectedExam(null);
+setSubjects([]);
     } catch (err) {
       console.error(err);
     }
@@ -282,14 +280,33 @@ const saveMarks = async () => {
   className="me-select"
   value={selectedExam?.id || ""}
   onChange={(e) => {
-    const exam = exams.find(ex => ex.id === Number(e.target.value));
+
+    const examId = e.target.value;
+
+    if (!examId) {
+      setSelectedExam(null);
+      setSubjects([]);
+      setActiveSubject(0);
+      return;
+    }
+
+    const exam = exams.find(
+      ex => ex.id === Number(examId)
+    );
+
     setSelectedExam(exam);
-    setSubjects(exam?.subjects || []);
     setActiveSubject(0);
   }}
 >
-  {exams.map(exam => (
-    <option key={exam.id} value={exam.id}>
+  <option value="">
+    Select Exam
+  </option>
+
+  {exams.map((exam) => (
+    <option
+      key={exam.id}
+      value={exam.id}
+    >
       {exam.examName}
     </option>
   ))}

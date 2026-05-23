@@ -13,11 +13,15 @@ export default function ResultsPage({ onBack }) {
   const [summary, setSummary] = useState({});
 
   const [selectedExam, setSelectedExam] = useState("");
-  const [selectedClass, setSelectedClass] = useState("6");
-  const [selectedSection, setSelectedSection] = useState("A");
+  
+  
 
   const [activeSubject, setActiveSubject] = useState(0);
   const [page, setPage] = useState(1);
+
+  
+const [selectedClass, setSelectedClass] = useState("");
+const [selectedSection, setSelectedSection] = useState("");
 
   // FETCH RESULT API
   useEffect(() => {
@@ -109,9 +113,7 @@ export default function ResultsPage({ onBack }) {
 
       setExams(data || []);
 
-      if (data.length > 0) {
-        setSelectedExam(data[0].id);
-      }
+      
 
     } catch (err) {
       console.error(err);
@@ -236,35 +238,46 @@ const classAvg =
   value={selectedExam}
   onChange={(e) => setSelectedExam(e.target.value)}
 >
+  <option value="">Select Exam</option>
 
   {exams.map((exam) => (
-
-  <option
-    key={exam.id}
-    value={exam.id}
-  >
-    {exam.examName}
-  </option>
-
-))}
-
+    <option key={exam.id} value={exam.id}>
+      {exam.examName}
+    </option>
+  ))}
 </select>
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Class</label>
-            <select className="res-select" value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
-              {CLASSES.map(c => (
-  <option key={c} value={c}>
-    {c}
-  </option>
-))}
-            </select>
+            <select
+  className="res-select"
+  value={selectedClass}
+  onChange={(e) => setSelectedClass(e.target.value)}
+>
+  <option value="">Select Class</option>
+
+  {CLASSES.map((c) => (
+    <option key={c} value={c}>
+      Class {c}
+    </option>
+  ))}
+</select>
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Section</label>
-            <select className="res-select" style={{ minWidth: 110 }} value={selectedSection} onChange={e => setSelectedSection(e.target.value)}>
-              {SECTIONS.map(s => <option key={s}>{s}</option>)}
-            </select>
+            <select
+  className="res-select"
+  value={selectedSection}
+  onChange={(e) => setSelectedSection(e.target.value)}
+>
+  <option value="">Select Section</option>
+
+  {SECTIONS.map((s) => (
+    <option key={s} value={s}>
+      Section {s}
+    </option>
+  ))}
+</select>
           </div>
           <div style={{ marginLeft: "auto" }}>
             <div style={{ background: "#f0f4ff", borderRadius: 12, padding: "12px 18px", display: "flex", gap: 20 }}>

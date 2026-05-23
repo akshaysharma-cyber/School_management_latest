@@ -11,9 +11,12 @@ const EXAM_TYPES = [
 
 const ACADEMIC_YEARS = [
   "2024 - 2025",
-  "2023 - 2024",
-  "2022 - 2023",
+  "2025 - 2026",
+  "2026 - 2027",
+  "2027 - 2028",
 ];
+
+
 
 const GRADE_SYSTEMS = [
   "CBSE (A1, A2, B1, B2, C1, C2, D)",
@@ -23,6 +26,9 @@ const GRADE_SYSTEMS = [
 ];
 
 const ALL_CLASSES = [
+  "Nursery",
+  "LKG",
+  "UKG",
   "1",
   "2",
   "3",
@@ -33,18 +39,27 @@ const ALL_CLASSES = [
   "8",
   "9",
   "10",
+  "11",
+  "12",
 ];
 
 export default function ExamSetupPage({ onBack }) {
   const user = JSON.parse(localStorage.getItem("user"));
+  const [academicYear, setAcademicYear] = useState("");
+
+const [
+  showAcademicDropdown,
+  setShowAcademicDropdown
+] = useState(false);
 
   const [classSubjectsMap, setClassSubjectsMap] = useState({});
-  const [selectedClasses, setSelectedClasses] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   const [examName, setExamName] = useState("");
-  const [academicYear, setAcademicYear] = useState("2024 - 2025");
-  const [examType, setExamType] = useState("Unit Test");
+  const [examType, setExamType] = useState("");
+const [showExamTypeDropdown, setShowExamTypeDropdown] =
+  useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -63,10 +78,7 @@ export default function ExamSetupPage({ onBack }) {
   const [showClassDropdown, setShowClassDropdown] = useState(false);
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
 
-  const currentClass =
-    selectedClasses.length > 0
-      ? selectedClasses[0].replace("Class ", "")
-      : "";
+  const currentClass = selectedClass;
 
   const currentClassSubjects = classSubjectsMap[currentClass] || [];
 
@@ -103,26 +115,25 @@ export default function ExamSetupPage({ onBack }) {
   };
 
   const toggleClass = (cls) => {
-    setSelectedClasses((prev) => {
-      if (prev.includes(cls)) {
-        return prev.filter((c) => c !== cls);
-      }
-
-      return [cls];
-    });
+    setSelectedClass(cls);
 
     setSelectedSubjects([]);
+
+    setShowClassDropdown(false); // auto close dropdown
   };
 
   const toggleSubject = (subjectName) => {
-    setSelectedSubjects((prev) => {
-      if (prev.includes(subjectName)) {
-        return prev.filter((s) => s !== subjectName);
-      }
+  setSelectedSubjects((prev) => {
 
-      return [...prev, subjectName];
-    });
-  };
+    if (prev.includes(subjectName)) {
+      return prev.filter(
+        (item) => item !== subjectName
+      );
+    }
+
+    return [...prev, subjectName];
+  });
+};
 
   const getSubjectId = (subjectName) => {
     const subjects = currentClassSubjects || [];
@@ -343,27 +354,83 @@ export default function ExamSetupPage({ onBack }) {
           </div>
 
           <div>
-            <label className="setup-label">
-              Academic Year
-            </label>
+  <label className="setup-label">
+    Academic Year
+  </label>
 
-            <select
-              className="setup-select"
-              value={academicYear}
-              onChange={(e) =>
-                setAcademicYear(e.target.value)
-              }
-            >
-              {ACADEMIC_YEARS.map((y, index) => (
-                <option
-                  key={`year-${index}`}
-                  value={y}
-                >
-                  {y}
-                </option>
-              ))}
-            </select>
+  <div
+    style={{
+      position: "relative"
+    }}
+  >
+
+    <div
+      onClick={() =>
+        setShowAcademicDropdown(
+          !showAcademicDropdown
+        )
+      }
+      style={{
+        border: "1px solid #ddd",
+        borderRadius: 10,
+        height: 48,
+        padding: "0 14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        background: "#fff"
+      }}
+    >
+
+      <span
+        style={{
+          color: academicYear
+            ? "#111"
+            : "#94a3b8"
+        }}
+      >
+        {academicYear ||
+          "Select Academic Year"}
+      </span>
+
+      <span>▼</span>
+
+    </div>
+
+    {showAcademicDropdown && (
+
+      <div className="dropdown-list">
+
+        {[
+          "2026 - 2027",
+          "2027 - 2028",
+          "2028 - 2029",
+          "2029 - 2030",
+        ].map((year) => (
+
+          <div
+            key={year}
+            className="dropdown-item"
+            onClick={() => {
+              setAcademicYear(year);
+
+              setShowAcademicDropdown(
+                false
+              );
+            }}
+          >
+            {year}
           </div>
+
+        ))}
+
+      </div>
+
+    )}
+
+  </div>
+</div>
         </div>
 
         <div
@@ -378,22 +445,74 @@ export default function ExamSetupPage({ onBack }) {
               Exam Type
             </label>
 
-            <select
-              className="setup-select"
-              value={examType}
-              onChange={(e) =>
-                setExamType(e.target.value)
-              }
-            >
-              {EXAM_TYPES.map((t, index) => (
-                <option
-                  key={`type-${index}`}
-                  value={t}
-                >
-                  {t}
-                </option>
-              ))}
-            </select>
+            <div style={{ position: "relative" }}>
+
+  <div
+    onClick={() =>
+      setShowExamTypeDropdown(
+        !showExamTypeDropdown
+      )
+    }
+    style={{
+      border: "1px solid #ddd",
+      borderRadius: 10,
+      height: 48,
+      padding: "0 14px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      cursor: "pointer",
+      background: "#fff"
+    }}
+  >
+
+    <span
+      style={{
+        color:
+          examType
+            ? "#111"
+            : "#94a3b8"
+      }}
+    >
+      {examType ||
+        "Select Exam Type"}
+    </span>
+
+    <span>▼</span>
+
+  </div>
+
+  {showExamTypeDropdown && (
+
+    <div className="dropdown-list">
+
+      {EXAM_TYPES.map((type) => (
+
+        <div
+          key={type}
+          className="dropdown-item"
+          onClick={() => {
+
+            setExamType(type);
+
+            setShowExamTypeDropdown(
+              false
+            );
+
+          }}
+        >
+
+          {type}
+
+        </div>
+
+      ))}
+
+    </div>
+
+  )}
+
+</div>
           </div>
 
           <div>
@@ -440,6 +559,9 @@ export default function ExamSetupPage({ onBack }) {
             gap: 20,
           }}
         >
+
+
+
           {/* CLASS */}
 
           <div>
@@ -448,68 +570,64 @@ export default function ExamSetupPage({ onBack }) {
             </label>
 
             <div style={{ position: "relative" }}>
+
+              {/* Selected Box */}
               <div
                 onClick={() => {
-                  setShowClassDropdown(
-                    !showClassDropdown
-                  );
-
+                  setShowClassDropdown(!showClassDropdown);
                   setShowSubjectDropdown(false);
                 }}
                 style={{
                   border: "1px solid #ddd",
                   borderRadius: 10,
-                  minHeight: 45,
-                  padding: 10,
+                  height: 48,
+                  padding: "0 14px",
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
+                  justifyContent: "space-between",
                   cursor: "pointer",
+                  background: "#fff"
                 }}
               >
-                {selectedClasses.map((cls) => (
-                  <span
-                    key={cls}
-                    className="tag-chip"
-                  >
-                    {cls}
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleClass(cls);
-                      }}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
+                <div
+                  style={{
+                    flex: 1,
+                    color: selectedClass ? "#111827" : "#94a3b8",
+                    fontSize: 14,
+                    fontWeight: selectedClass ? 600 : 400
+                  }}
+                >
+                  {selectedClass === ""
+                    ? "Select Class"
+                    : ["Nursery", "LKG", "UKG"].includes(selectedClass)
+                      ? selectedClass
+                      : `Class ${selectedClass}`}
+                </div>
+
+                <span>▼</span>
+
               </div>
 
+              {/* Dropdown */}
               {showClassDropdown && (
                 <div className="dropdown-list">
+
                   {ALL_CLASSES.map((cls) => (
                     <div
                       key={cls}
                       className="dropdown-item"
-                      onClick={() =>
-                        toggleClass(cls)
-                      }
+                      onClick={() => toggleClass(cls)}
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedClasses.includes(
-                          cls
-                        )}
-                        readOnly
-                      />
-
-                      {cls}
+                      {["Nursery", "LKG", "UKG"].includes(cls)
+                        ? cls
+                        : `Class ${cls}`}
                     </div>
                   ))}
+
                 </div>
               )}
+
             </div>
           </div>
 
@@ -521,70 +639,141 @@ export default function ExamSetupPage({ onBack }) {
             </label>
 
             <div style={{ position: "relative" }}>
+
+              {/* Subject Select Box */}
               <div
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                  minHeight: 48,
+                  padding: "8px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#fff",
+                  cursor: "pointer"
+                }}
                 onClick={() => {
+                  if (!selectedClass) return;
+
                   setShowSubjectDropdown(
                     !showSubjectDropdown
                   );
 
                   setShowClassDropdown(false);
                 }}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: 10,
-                  minHeight: 45,
-                  padding: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  cursor: "pointer",
-                }}
               >
-                {selectedSubjects.map((s) => (
-                  <span
-                    key={s}
-                    className="tag-chip"
-                  >
-                    {s}
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSubject(s);
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    flex: 1
+                  }}
+                >
+
+                  {selectedSubjects.length === 0 ? (
+                    <span
+                      style={{
+                        color: "#94a3b8"
                       }}
                     >
-                      ×
-                    </button>
-                  </span>
-                ))}
+                      Select Subject
+                    </span>
+                  ) : (
+                    selectedSubjects.map((s) => (
+                      <span
+                        key={s}
+                        className="tag-chip"
+                      >
+                        {s}
+
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+
+                            toggleSubject(s);
+                          }}
+                          style={{
+                            cursor: "pointer",
+                            marginLeft: 6
+                          }}
+                        >
+                          ×
+                        </span>
+                      </span>
+                    ))
+                  )}
+
+                </div>
+
+                <span>
+                  ▼
+                </span>
+
               </div>
 
-              {showSubjectDropdown && (
-                <div className="dropdown-list">
-                  {currentClassSubjects.map((s) => (
-                    <div
-                      key={s.id}
-                      className="dropdown-item"
-                      onClick={() =>
-                        toggleSubject(
-                          s.subjectName
-                        )
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedSubjects.includes(
-                          s.subjectName
-                        )}
-                        readOnly
-                      />
+              {/* Dropdown */}
+{/* Dropdown */}
+{showSubjectDropdown && (
+  <div
+    className="dropdown-list"
+    style={{
+      zIndex: 9999
+    }}
+  >
 
-                      {s.subjectName}
-                    </div>
-                  ))}
-                </div>
-              )}
+    {currentClassSubjects.length > 0 ? (
+
+      currentClassSubjects.map((subject) => (
+
+        <div
+          key={subject.id}
+          className="dropdown-item"
+          onClick={() =>
+            toggleSubject(
+              subject.subjectName
+            )
+          }
+          style={{
+            justifyContent:
+              "space-between"
+          }}
+        >
+
+          <span>
+            {subject.subjectName}
+          </span>
+
+          <span>
+            {selectedSubjects.includes(
+              subject.subjectName
+            )
+              ? "✓"
+              : ""}
+          </span>
+
+        </div>
+
+      ))
+
+    ) : (
+
+      <div
+        className="dropdown-item"
+        style={{
+          color: "#999"
+        }}
+      >
+        No Subjects Found
+      </div>
+
+    )}
+
+  </div>
+)}
+
             </div>
           </div>
         </div>
