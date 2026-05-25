@@ -8,6 +8,7 @@ import ExaminationsPage from "./ExaminationsPage";
 import ExamSetupPage from "./ExamSetupPage";
 import MarksEntryPage from "./MarksEntryPage";
 import ResultsPage from "./ResultsPage";
+import ReportCardsPage from "./ReportCardsPage";
 
 const NAV_ITEMS = [
   { id:"dashboard", label:"Dashboard", icon:<DashboardIcon/> },
@@ -37,6 +38,7 @@ const QUICK_ACTIONS = [
 ];
 
 export default function Dashboard({ user, onLogout }) {
+  const [expandedMenu, setExpandedMenu] = useState(null);
   const [activePage, setActivePage] = useState(
   localStorage.getItem("activePage") || "dashboard"
 );
@@ -132,13 +134,46 @@ const fetchDashboardData = async () => {
         {/* Nav */}
         <nav style={{flex:1,padding:"16px 0",overflowY:"auto"}}>
           {NAV_ITEMS.map(item=>(
-            <div key={item.id}>
-              <div className={`nav-item${activePage===item.id?" active":""}`} onClick={()=>{setActivePage(item.id);setSubPage(null);}}>
+  <div key={item.id}>
+
+    <div
+      className={`nav-item${activePage===item.id?" active":""}`}
+      onClick={() => {
+
+        if (item.hasChildren) {
+
+          setExpandedMenu(
+            expandedMenu === item.id
+              ? null
+              : item.id
+          );
+
+          setActivePage(item.id);
+
+          if (expandedMenu === item.id) {
+            setSubPage(null);
+          }
+
+        } else {
+
+          setActivePage(item.id);
+          setExpandedMenu(null);
+          setSubPage(null);
+
+        }
+
+      }}
+    >
                 {item.icon}
                 {item.label}
-                {item.hasChildren && <svg width="12" height="8" viewBox="0 0 12 8" fill="none" style={{marginLeft:"auto",opacity:0.5}}><path d={activePage===item.id?"M11 7L6 2L1 7":"M1 1l5 5 5-5"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                {item.hasChildren && <svg width="12" height="8" viewBox="0 0 12 8" fill="none" style={{marginLeft:"auto",opacity:0.5}}><path
+d={
+expandedMenu===item.id
+? "M11 7L6 2L1 7"
+: "M1 1l5 5 5-5"
+} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
               </div>
-              {item.hasChildren && activePage===item.id && (
+              {item.hasChildren && expandedMenu===item.id && (
                 <div style={{marginLeft:20,marginBottom:4}}>
                   {[{id:"setup",label:"Exam Setup"},{id:"marks",label:"Marks Entry"},{id:"results",label:"Results"},{id:"cards",label:"Report Cards"}].map(sub=>(
                     <div key={sub.id} onClick={()=>setSubPage(sub.id===subPage?null:sub.id)}
@@ -271,6 +306,10 @@ const fetchDashboardData = async () => {
           {activePage==="examinations" && subPage==="results" && (
             <ResultsPage onBack={()=>setSubPage(null)} />
           )}
+
+          {activePage==="examinations" && subPage==="cards" && (
+  <ReportCardsPage onBack={()=>setSubPage(null)} />
+)}
 
           {activePage==="students" && !subPage && (
             <div>

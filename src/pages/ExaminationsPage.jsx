@@ -21,12 +21,13 @@ const STUDENTS = [
 
 
 export default function ExaminationsPage({ onNavigate }) {
+  const [recentResults, setRecentResults] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
-  upcomingExams: 0,
-  ongoingExam: 0,
-  students: 0,
-  averageResult: 0,
-});
+    upcomingExams: 0,
+    ongoingExam: 0,
+    students: 0,
+    averageResult: 0,
+  });
   const [selectedExam, setSelectedExam] = useState(EXAMS[0]);
   const [selectedClass, setSelectedClass] = useState(CLASSES[2]);
   const [selectedSection, setSelectedSection] = useState(SECTIONS[0]);
@@ -47,38 +48,78 @@ export default function ExaminationsPage({ onNavigate }) {
   const getTotal = (id) => (marks[id]?.math || 0) + (marks[id]?.english || 0) + (marks[id]?.science || 0);
 
   useEffect(() => {
-  fetchDashboardStats();
-}, []);
 
-const fetchDashboardStats = async () => {
-  try {
-    const user = JSON.parse(localStorage.getItem("user"));
+    fetchDashboardStats();
 
-    const res = await fetch(
-      `http://localhost:8089/api/exams/dashboard-stat?schoolId=${user.schoolId}`
-    );
+    fetchRecentResults();
 
-    const data = await res.json();
+  }, []);
 
-    console.log("Dashboard =", data);
+  const fetchDashboardStats = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
 
-    setDashboardStats({
-      upcomingExams: data.upcomingExams ?? 0,
+      const res = await fetch(
+        `http://localhost:8089/api/exams/dashboard-stat?schoolId=${user.schoolId}`
+      );
 
-      // FIXED
-      ongoingExam: data.ongoingExams ?? 0,
+      const data = await res.json();
 
-      // FIXED
-      students: data.totalStudents ?? 0,
+      console.log("Dashboard =", data);
 
-      // FIXED
-      averageResult: data.averageLastResult ?? 0,
-    });
+      setDashboardStats({
+        upcomingExams: data.upcomingExams ?? 0,
 
-  } catch (err) {
-    console.error("Dashboard Error", err);
-  }
-};
+        // FIXED
+        ongoingExam: data.ongoingExams ?? 0,
+
+        // FIXED
+        students: data.totalStudents ?? 0,
+
+        // FIXED
+        averageResult: data.averageLastResult ?? 0,
+      });
+
+    } catch (err) {
+      console.error("Dashboard Error", err);
+    }
+  };
+
+  const fetchRecentResults = async () => {
+    try {
+      const user =
+        JSON.parse(
+          localStorage.getItem("user")
+        );
+
+      const res =
+        await fetch(
+          `http://localhost:8089/api/exams/recent-results?schoolId=${user.schoolId}`
+        );
+
+      const data =
+        await res.json();
+
+      console.log(
+        "Recent Results =",
+        data
+      );
+
+      setRecentResults(
+        data || []
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Recent Results Error",
+        err
+      );
+
+      setRecentResults([]);
+
+    }
+  };
 
   return (
     <div>
@@ -111,15 +152,15 @@ const fetchDashboardStats = async () => {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button className="exam-btn" onClick={() => onNavigate("setup")} style={{ background: "#f0f4ff", color: "#4361ee" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="#4361ee" strokeWidth="2" strokeLinecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="#4361ee" strokeWidth="2" strokeLinecap="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="#4361ee" strokeWidth="2" strokeLinecap="round" /><line x1="5" y1="12" x2="19" y2="12" stroke="#4361ee" strokeWidth="2" strokeLinecap="round" /></svg>
             Add Exam
           </button>
           <button className="exam-btn" onClick={() => onNavigate("marks")} style={{ background: "#f0ecff", color: "#7b61ff" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#7b61ff" strokeWidth="1.8" strokeLinecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#7b61ff" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#7b61ff" strokeWidth="1.8" strokeLinecap="round" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#7b61ff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
             Enter Marks
           </button>
           <button className="exam-btn" onClick={() => onNavigate("results")} style={{ background: "#fff4eb", color: "#f4a261" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 20V10" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round"/><path d="M12 20V4" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round"/><path d="M6 20v-6" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 20V10" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round" /><path d="M12 20V4" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round" /><path d="M6 20v-6" stroke="#f4a261" strokeWidth="1.8" strokeLinecap="round" /></svg>
             View Results
           </button>
         </div>
@@ -128,90 +169,90 @@ const fetchDashboardStats = async () => {
       {/* Stat Cards */}
       <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
         {[
-  {
-    icon: "📅",
-    val: dashboardStats.upcomingExams,
-    label: "Upcoming Exams",
-    bg: "#f0f4ff",
-    iconBg: "#dde5ff",
-  },
-  {
-    icon: "✅",
-    val: dashboardStats.ongoingExam,
-    label: "Ongoing Exam",
-    bg: "#e8faf9",
-    iconBg: "#c3f0eb",
-  },
-  {
-    icon: "👥",
-    val: dashboardStats.students,
-    label: "Students",
-    bg: "#f0ecff",
-    iconBg: "#ddd6fe",
-  },
-  {
-    icon: "📊",
-    val: `${dashboardStats.averageResult}%`,
-    label: "Average Last Result",
-    bg: "#fff4eb",
-    iconBg: "#ffe5c8",
-    isPercent: true,
-  },
-].map((c, i) => (
-  <div
-    key={i}
-    className="exam-stat-card"
-    style={{ background: c.bg }}
-  >
-    <div
-      style={{
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        background: c.iconBg,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 22,
-        marginBottom: 12,
-      }}
-    >
-      {c.icon}
-    </div>
+          {
+            icon: "📅",
+            val: dashboardStats.upcomingExams,
+            label: "Upcoming Exams",
+            bg: "#f0f4ff",
+            iconBg: "#dde5ff",
+          },
+          {
+            icon: "✅",
+            val: dashboardStats.ongoingExam,
+            label: "Ongoing Exam",
+            bg: "#e8faf9",
+            iconBg: "#c3f0eb",
+          },
+          {
+            icon: "👥",
+            val: dashboardStats.students,
+            label: "Students",
+            bg: "#f0ecff",
+            iconBg: "#ddd6fe",
+          },
+          {
+            icon: "📊",
+            val: `${dashboardStats.averageResult}%`,
+            label: "Average Last Result",
+            bg: "#fff4eb",
+            iconBg: "#ffe5c8",
+            isPercent: true,
+          },
+        ].map((c, i) => (
+          <div
+            key={i}
+            className="exam-stat-card"
+            style={{ background: c.bg }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: c.iconBg,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 22,
+                marginBottom: 12,
+              }}
+            >
+              {c.icon}
+            </div>
 
-    <p
-      style={{
-        margin: "0 0 3px",
-        fontSize: c.isPercent ? 26 : 30,
-        fontWeight: 800,
-        color: "#1a2744",
-      }}
-    >
-      {c.val}
-    </p>
+            <p
+              style={{
+                margin: "0 0 3px",
+                fontSize: c.isPercent ? 26 : 30,
+                fontWeight: 800,
+                color: "#1a2744",
+              }}
+            >
+              {c.val}
+            </p>
 
-    <p
-      style={{
-        margin: 0,
-        fontSize: 13,
-        color: "#8898b8",
-      }}
-    >
-      {c.label}
-    </p>
-  </div>
-))}
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "#8898b8",
+              }}
+            >
+              {c.label}
+            </p>
+          </div>
+        ))}
       </div>
 
-    
-      
 
-      
+
+
+
 
       {/* Recent Results */}
 
-      
-      <div style={{ background: "#fff", borderRadius: 20, padding: 28, marginBottom: 24,boxShadow: "0 2px 12px rgba(67,97,238,0.06)" }}>
+
+      <div style={{ background: "#fff", borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: "0 2px 12px rgba(67,97,238,0.06)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a2744" }}>Recent Results</h3>
           <button onClick={() => onNavigate("results")} style={{ background: "none", border: "none", color: "#4361ee", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit" }}>View All Results</button>
@@ -226,27 +267,205 @@ const fetchDashboardStats = async () => {
               </tr>
             </thead>
             <tbody>
-              {RECENT_RESULTS.map((r, i) => (
-                <tr key={i} className="result-row" style={{ borderBottom: "1px solid #f5f6fc" }}>
-                  <td style={{ padding: "14px 14px", fontSize: 14, fontWeight: 700, color: "#1a2744" }}>{r.name}</td>
-                  <td style={{ padding: "14px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 500 }}>{r.classVal}</td>
-                  <td style={{ padding: "14px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 500 }}>{r.students}</td>
-                  <td style={{ padding: "14px 14px" }}>
-                    <span style={{ background: r.avgColor + "18", color: r.avgColor, fontWeight: 700, fontSize: 13.5, borderRadius: 8, padding: "4px 10px" }}>{r.avg}</span>
-                  </td>
-                  <td style={{ padding: "14px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 500 }}>{r.topper}</td>
-                  <td style={{ padding: "14px 14px", fontSize: 13, color: "#8898b8", whiteSpace: "pre-line" }}>{r.publishedOn}</td>
-                  <td style={{ padding: "14px 14px" }}>
-                    <span style={{ background: r.smsBg, color: r.smsColor, fontWeight: 700, fontSize: 12.5, borderRadius: 8, padding: "4px 10px" }}>{r.smsStatus}</span>
-                  </td>
-                  <td style={{ padding: "14px 14px" }}>
-                    <button onClick={() => onNavigate("results")} style={{ background: "#f0f4ff", border: "none", borderRadius: 8, padding: "6px 14px", color: "#4361ee", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#4361ee" strokeWidth="1.8"/><circle cx="12" cy="12" r="3" stroke="#4361ee" strokeWidth="1.8"/></svg>
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {
+                recentResults.length > 0
+                  ?
+
+                  recentResults.map((r, i) => (
+
+                    <tr
+                      key={i}
+                      className="result-row"
+                      style={{
+                        borderBottom:
+                          "1px solid #f5f6fc"
+                      }}
+                    >
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+                        {r.examName}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+                        Class {r.className}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+                        {r.students}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+
+                        <span
+                          style={{
+                            background:
+                              "#e8faf9",
+
+                            color:
+                              "#2ec4b6",
+
+                            padding:
+                              "4px 10px",
+
+                            borderRadius:
+                              8,
+
+                            fontWeight:
+                              700
+                          }}
+                        >
+
+                          {Number(
+                            r.average
+                          ).toFixed(1)}%
+
+                        </span>
+
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+
+                        {r.topperName}
+
+                        {" "}
+
+                        (
+                        {Number(
+                          r.topperPercentage
+                        ).toFixed(1)}%)
+
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+
+                        {r.publishedOn}
+
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+
+                        <span
+                          style={{
+                            background:
+                              r.smsSent
+                                ?
+                                "#e8faf9"
+                                :
+                                "#f5f6fc",
+
+                            color:
+                              r.smsSent
+                                ?
+                                "#2ec4b6"
+                                :
+                                "#8898b8",
+
+                            padding:
+                              "4px 10px",
+
+                            borderRadius:
+                              8
+                          }}
+                        >
+
+                          {
+                            r.smsSent
+                              ?
+                              "SMS Sent"
+                              :
+                              "Not Sent"
+                          }
+
+                        </span>
+
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px"
+                        }}
+                      >
+
+                        <button
+                          onClick={() =>
+                            onNavigate(
+                              "results"
+                            )
+                          }
+                          style={{
+                            background:
+                              "#f0f4ff",
+                            border: "none",
+                            padding:
+                              "6px 14px",
+                            borderRadius:
+                              8,
+                            cursor:
+                              "pointer"
+                          }}
+                        >
+
+                          View
+
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  ))
+
+                  :
+
+                  <tr>
+
+                    <td
+                      colSpan="8"
+                      style={{
+                        padding:
+                          30,
+                        textAlign:
+                          "center",
+                        color:
+                          "#8898b8"
+                      }}
+                    >
+
+                      No Results Found
+
+                    </td>
+
+                  </tr>
+
+              }
             </tbody>
           </table>
         </div>
@@ -256,7 +475,7 @@ const fetchDashboardStats = async () => {
       <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 12px rgba(67,97,238,0.06)", marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: "#e8faf9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#2ec4b6" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#2ec4b6" strokeWidth="1.8" strokeLinejoin="round" /></svg>
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#1a2744" }}>Send Result SMS to Parents</h3>
@@ -287,7 +506,7 @@ const fetchDashboardStats = async () => {
               Total SMS: <strong style={{ color: "#1a2744" }}>32</strong> &nbsp; Estimated Cost: <strong style={{ color: "#4361ee" }}>₹6.40</strong>
             </p>
             <button className="exam-btn" style={{ background: "#2ec4b6", color: "#fff", boxShadow: "0 4px 12px rgba(46,196,182,0.3)", width: "100%", justifyContent: "center" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/><path d="M22 2L15 22 11 13 2 9l20-7z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /><path d="M22 2L15 22 11 13 2 9l20-7z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
               Send SMS Now
             </button>
           </div>
