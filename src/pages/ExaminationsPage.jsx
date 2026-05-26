@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 const RECENT_RESULTS = [
   { name: "Unit Test - 1", classVal: "Class 5", students: 32, avg: "78.6%", avgColor: "#2ec4b6", topper: "Priya Sharma (89.0%)", publishedOn: "5 June 2024\n10:30 AM", smsStatus: "SMS Sent", smsColor: "#2ec4b6", smsBg: "#e8faf9" },
@@ -59,7 +60,7 @@ export default function ExaminationsPage({ onNavigate }) {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
 
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:8089/api/exams/dashboard-stat?schoolId=${user.schoolId}`
       );
 
@@ -93,7 +94,7 @@ export default function ExaminationsPage({ onNavigate }) {
         );
 
       const res =
-        await fetch(
+        await apiFetch(
           `http://localhost:8089/api/exams/recent-results?schoolId=${user.schoolId}`
         );
 

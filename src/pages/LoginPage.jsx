@@ -1,6 +1,7 @@
 import { useState } from "react";
 import InputField from "../components/InputField";
 import { validateMobile, validatePassword } from "../utils/validation";
+import { apiFetch } from "../utils/apiFetch";
 
 export default function LoginPage({ onNavigate, onLogin, registeredUsers }) {
   const [mobile, setMobile] = useState("");
@@ -49,21 +50,46 @@ export default function LoginPage({ onNavigate, onLogin, registeredUsers }) {
 
     if (response.ok) {
 
-      // save token if backend returns JWT
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
+  /* SAVE ACCESS TOKEN */
 
-      // save user if backend returns user object
-      localStorage.setItem(
-  "user",
-  JSON.stringify(data)
+ localStorage.setItem(
+ "accessToken",
+ data.token
 );
 
-      // navigate after login
-      onLogin(data);
+localStorage.setItem(
+ "refreshToken",
+ data.refreshToken
+);
 
-    } else {
+  /* SAVE USER */
+
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+
+      userId:
+      data.userId,
+
+      schoolId:
+      data.schoolId,
+
+      role:
+      data.role,
+
+      fullName:
+      data.fullName
+
+    })
+  );
+
+ onLogin({
+ ...data,
+ token:
+ data.token
+});
+
+} else {
       setAuthError(
         data.message ||
         "Invalid mobile number or password"

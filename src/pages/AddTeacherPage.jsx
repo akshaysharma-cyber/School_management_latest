@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 export default function AddTeacherPage({ onBack }) {
   const [form, setForm] = useState({
@@ -66,7 +67,7 @@ const teachersPerPage = 5;
       joiningDate: form.joiningDate
     };
 
-    const response = await fetch("http://localhost:8089/api/teachers/add", {
+    const response = await apiFetch("http://localhost:8089/api/teachers/add", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -96,7 +97,7 @@ const fetchTeachers = async () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/teachers/all?schoolId=${user.schoolId}`
     );
 
@@ -130,7 +131,7 @@ const deleteTeacher = async (id) => {
 
   try {
 
-    await fetch(
+    await apiFetch(
       `http://localhost:8089/api/teachers/delete/${id}`,
       {
         method: "DELETE"
@@ -150,7 +151,7 @@ const updateTeacher = async () => {
 
   try {
 
-    await fetch(
+    await apiFetch(
       `http://localhost:8089/api/teachers/update/${selectedTeacher.id}`,
       {
         method: "PUT",

@@ -6,6 +6,7 @@ import {
   validateMobile,
   getPasswordStrength
 } from "../utils/validation";
+import { apiFetch } from "../utils/apiFetch";
 
 export default function SignupPage({ onNavigate, onSignup }) {
 
@@ -129,7 +130,7 @@ export default function SignupPage({ onNavigate, onSignup }) {
     setLoading(true);
 
     // ✅ API CALL
-    const response = await fetch(
+    const response = await apiFetch(
       "http://localhost:8089/api/auth/signup",
       {
         method: "POST",

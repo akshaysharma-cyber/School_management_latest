@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 
 
@@ -109,7 +110,7 @@ export default function AddStudentPage({ onBack }) {
       );
     }
 
-    const response = await fetch(
+    const response = await apiFetch(
       "http://localhost:8089/api/students/add",
       {
         method: "POST",
@@ -146,7 +147,7 @@ export default function AddStudentPage({ onBack }) {
 
     try {
 
-      const response = await fetch(
+      const response = await apiFetch(
         `http://localhost:8089/api/students/all?schoolId=${schoolId}`
       );
 
@@ -185,7 +186,7 @@ export default function AddStudentPage({ onBack }) {
 
     try {
 
-      const response = await fetch(
+      const response = await apiFetch(
         `http://localhost:8089/api/students/delete/${id}`,
         {
           method: "DELETE"

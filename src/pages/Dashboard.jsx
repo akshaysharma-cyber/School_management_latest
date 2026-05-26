@@ -9,6 +9,7 @@ import ExamSetupPage from "./ExamSetupPage";
 import MarksEntryPage from "./MarksEntryPage";
 import ResultsPage from "./ResultsPage";
 import ReportCardsPage from "./ReportCardsPage";
+import { apiFetch } from "../utils/apiFetch";
 
 const NAV_ITEMS = [
   { id:"dashboard", label:"Dashboard", icon:<DashboardIcon/> },
@@ -72,26 +73,50 @@ useEffect(() => {
   fetchDashboardData();
 }, []);
 
-const fetchDashboardData = async () => {
-  try {
+const fetchDashboardData =
+async () => {
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    const schoolId = user?.schoolId;
+try {
 
-    console.log("School ID =", schoolId);
-    const response = await fetch(
-      `http://localhost:8089/api/dashboard/summary?schoolId=${schoolId}`
-    );
+const user =
+JSON.parse(
+localStorage.getItem(
+"user"
+)
+);
 
-    const data = await response.json();
+const schoolId =
+user?.schoolId;
 
-    console.log("Dashboard Data =", data);
+const response =
+await apiFetch(
+`http://localhost:8089/api/dashboard/summary?schoolId=${schoolId}`
+);
 
-    setDashboardStats(data);
+if (!response.ok) {
 
-  } catch (error) {
-    console.error("Dashboard fetch error:", error);
-  }
+throw new Error(
+`HTTP ${response.status}`
+);
+
+}
+
+const data =
+await response.json();
+
+setDashboardStats(
+data
+);
+
+} catch (error) {
+
+console.error(
+"Dashboard fetch error:",
+error
+);
+
+}
+
 };
 
   return (
@@ -363,7 +388,7 @@ expandedMenu===item.id
           {/* Welcome */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"28px"}}>
             <div>
-              <h1 style={{margin:"0 0 4px",fontSize:"26px",fontWeight:800,color:"#1a2744"}}>Welcome back, {user?.name || "Admin"}!</h1>
+              <h1 style={{margin:"0 0 4px",fontSize:"26px",fontWeight:800,color:"#1a2744"}}>Welcome back, {user?.fullName || "Admin"}!</h1>
               <p style={{margin:0,color:"#8898b8",fontSize:"14.5px"}}>Have a great day at {user?.school||"Greenfield Primary School"}.</p>
             </div>
             <p style={{margin:0,color:"#8898b8",fontSize:"14px",fontWeight:500,flexShrink:0}}>{today}</p>

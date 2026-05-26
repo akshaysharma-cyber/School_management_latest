@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 export default function ReportCardsPage({ onBack }) {
 
@@ -46,7 +47,7 @@ export default function ReportCardsPage({ onBack }) {
                     user?.schoolId;
 
                 const res =
-                    await fetch(
+                    await apiFetch(
                         `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
                     );
 
@@ -85,7 +86,7 @@ export default function ReportCardsPage({ onBack }) {
         try {
 
             const res =
-                await fetch(
+                await apiFetch(
                     `http://localhost:8089/api/report-card/student/${studentId}`
                 );
 

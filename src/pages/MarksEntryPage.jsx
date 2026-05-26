@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 
 const CLASSES = ["1", "2", "3","4","5","6","7","8","9","10"];
@@ -75,7 +76,7 @@ const totalPages = Math.ceil(students.length / PAGE_SIZE);
 
       const schoolId = user?.schoolId;
 
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:8089/api/exams/${selectedExam.id}/subjects?schoolId=${schoolId}&className=${selectedClass}`
       );
 
@@ -116,7 +117,7 @@ useEffect(() => {
       console.log("selectedClass =", selectedClass);
       console.log("schoolId =", schoolId);
 
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:8089/api/students/class/${encodeURIComponent(selectedClass)}?schoolId=${schoolId}`
       );
 
@@ -158,7 +159,7 @@ useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
 
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:8089/api/exams/All-Exam?schoolId=${user.schoolId}`
       );
 
@@ -200,7 +201,7 @@ const saveMarks = async () => {
 
     console.log("SAVE PAYLOAD =", payload);
 
-    const res = await fetch(
+    const res = await apiFetch(
       "http://localhost:8089/api/marks/save",
       {
         method: "POST",

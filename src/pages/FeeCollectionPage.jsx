@@ -1,5 +1,6 @@
-//import { useState } from "react";
+
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 
 
@@ -48,7 +49,7 @@ const fetchClassCollection = async () => {
     const user =
       JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/fees/class-collection/${user.schoolId}`
     );
 
@@ -92,7 +93,7 @@ const fetchRecentPayments = async () => {
     const user =
       JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/fees/recent-payments/${user.schoolId}`
     );
 
@@ -114,7 +115,7 @@ const fetchStudents = async (className) => {
   try {
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/students/by-class/${user.schoolId}/${className}`
     );
 
@@ -131,7 +132,7 @@ const fetchFeeDetails = async (studentId) => {
   try {
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
     );
 
@@ -172,7 +173,7 @@ const handleCollectFee = async () => {
 
     console.log(payload);
 
-    const response = await fetch(
+    const response = await apiFetch(
       "http://localhost:8089/api/fees/collect",
       {
         method: "POST",
@@ -224,7 +225,7 @@ const fetchDashboardData = async () => {
     const user =
       JSON.parse(localStorage.getItem("user"));
 
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:8089/api/fees/dashboard/${user.schoolId}`
     );
 

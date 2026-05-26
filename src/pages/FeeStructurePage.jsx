@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 const DEFAULT_ITEMS = [
   { id: 1, name: "Tuition Fee", amount: "2500" },
@@ -48,7 +49,7 @@ export default function FeeStructurePage({ onBack }) {
 
       console.log("FEE PAYLOAD:", payload);
 
-      const response = await fetch(
+      const response = await apiFetch(
         "http://localhost:8089/api/fees/structure",
         {
           method: "POST",
@@ -107,7 +108,7 @@ export default function FeeStructurePage({ onBack }) {
         payload
       );
 
-      const response = await fetch(
+      const response = await apiFetch(
         "http://localhost:8089/api/fees/assign-class",
         {
 

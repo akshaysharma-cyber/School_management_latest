@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -32,7 +33,7 @@ const [selectedSection, setSelectedSection] = useState("");
 
         const user = JSON.parse(localStorage.getItem("user"));
 
-        const res = await fetch(
+        const res = await apiFetch(
           `http://localhost:8089/api/results/full-result?schoolId=${user.schoolId}&examId=${selectedExam}&className=${selectedClass}`
         );
 
@@ -105,7 +106,7 @@ const [selectedSection, setSelectedSection] = useState("");
 
       const user = JSON.parse(localStorage.getItem("user"));
 
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:8089/api/exams/All-Exam?schoolId=${user.schoolId}`
       );
 

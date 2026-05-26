@@ -1,9 +1,5 @@
   import React, { useState, useEffect } from "react";
-
-
-
-
-
+  import { apiFetch } from "../utils/apiFetch";
 
 
 export default function AttendancePage() {
@@ -73,7 +69,7 @@ const fetchAttendanceByDate = async () => {
 
   try {
 
-    const response = await fetch(
+    const response = await apiFetch(
 
       `http://localhost:8089/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&section=${section}&date=${attendanceDate}`
 
@@ -119,7 +115,7 @@ const fetchAttendanceByDate = async () => {
 
     console.log("SAVE PAYLOAD:", payload);
 
-    const response = await fetch(
+    const response = await apiFetch(
       "http://localhost:8089/api/attendance/mark",
       {
         method: "POST",
