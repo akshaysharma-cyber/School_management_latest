@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
+import jsPDF from "jspdf";
 
 
 
@@ -33,6 +34,8 @@ export default function FeeCollectionPage({ onNavigate }) {
   const [paymentDate, setPaymentDate] = useState("");
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [remarks, setRemarks] = useState("");
+  const [paymentHistory, setPaymentHistory] =
+  useState([]);
 
 
 
@@ -129,25 +132,100 @@ const fetchStudents = async (className) => {
 
 
 const fetchFeeDetails = async (studentId) => {
+
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
+
+    const user =
+      JSON.parse(
+        localStorage.getItem("user")
+      );
+
+
+
+    // =========================
+    // FETCH STUDENT FEE DETAILS
+    // =========================
 
     const response = await apiFetch(
       `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
     );
 
     const data = await response.json();
+
+
+
+    // =========================
+    // SET FEE DATA
+    // =========================
+
     setStudentFeeId(data.id);
 
-    setTotalAmount(data.totalAmount || 0);
-    setPaidAmount(data.paidAmount || 0);
-    setDueAmount(data.dueAmount || 0);
-    setReceiptNumber(data.receiptNumber || "");
+    setTotalAmount(
+      data.totalAmount || 0
+    );
+
+    setPaidAmount(
+      data.paidAmount || 0
+    );
+
+    setDueAmount(
+      data.dueAmount || 0
+    );
+
+    setReceiptNumber(
+      data.receiptNumber || ""
+    );
+
+
+
+    // =========================
+    // FETCH PREVIOUS PAYMENTS
+    // =========================
+
+    const historyResponse =
+      await apiFetch(
+        `http://localhost:8089/api/fees/payment-history/${user.schoolId}/${data.id}`
+      );
+
+
+
+    let historyData = [];
+
+    try {
+
+      historyData =
+        await historyResponse.json();
+
+    } catch {
+
+      historyData = [];
+    }
+
+
+
+    // =========================
+    // STORE HISTORY
+    // =========================
+
+    setPaymentHistory(
+      historyData
+    );
+
+
 
   } catch (error) {
-    console.error("Error fetching fee details:", error);
+
+    console.error(
+      "Error fetching fee details:",
+      error
+    );
+
+    setPaymentHistory([]);
+
   }
 };
+
+
 
 
 const handleCollectFee = async () => {
@@ -194,6 +272,11 @@ const handleCollectFee = async () => {
    setReceiptNumber(data);
 
   alert("Payment submitted successfully");
+  setTimeout(() => {
+
+  handlePrintReceipt();
+
+}, 500);
 
       fetchFeeDetails(selectedStudent);
 
@@ -210,6 +293,135 @@ const handleCollectFee = async () => {
 
     alert("Error collecting fee");
   }
+};
+
+const handlePrintReceipt = () => {
+
+  if (!selectedStudent) {
+    alert("Please select student");
+    return;
+  }
+
+  const student = students.find(
+    (s) => s.id == selectedStudent
+  );
+
+  const doc = new jsPDF();
+
+  let y = 20;
+
+  doc.setFontSize(18);
+  doc.text("FEE RECEIPT", 80, y);
+
+  y += 15;
+
+  doc.setFontSize(12);
+
+  doc.text(
+    `Student Name: ${student?.fullName || ""}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Class: ${selectedClass}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Father Name: ${fatherName}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Mobile: ${mobileNumber}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Receipt No: ${receiptNumber}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Payment Date: ${paymentDate || new Date().toLocaleDateString()}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Paid Amount: ₹ ${newPaymentAmount}`,
+    20,
+    y
+  );
+
+  y += 10;
+
+  doc.text(
+    `Remaining Due: ₹ ${
+      dueAmount - Number(newPaymentAmount || 0)
+    }`,
+    20,
+    y
+  );
+
+  y += 20;
+
+  doc.setFontSize(14);
+
+  doc.text("Previous Payments", 20, y);
+
+  y += 10;
+
+  paymentHistory.forEach((p, index) => {
+
+  doc.setFontSize(11);
+
+  doc.text(
+    `Receipt No: ${p.receiptNumber || "-"}`,
+    20,
+    y
+  );
+
+  y += 7;
+
+  doc.text(
+    `Date: ${p.paymentDate || "-"}`,
+    20,
+    y
+  );
+
+  y += 7;
+
+  doc.text(
+    `Amount: ₹ ${p.amount || 0}`,
+    20,
+    y
+  );
+
+  y += 12;
+
+});
+
+  doc.save(
+    `Receipt_${receiptNumber}.pdf`
+  );
 };
 
 useEffect(() => {
@@ -829,13 +1041,37 @@ const fetchDashboardData = async () => {
 
       {/* Buttons */}
       
+{/* Buttons */}
+
 <div
   style={{
     display: "flex",
     justifyContent: "flex-end",
-    gap: 14
+    gap: 14,
+    flexWrap: "wrap"
   }}
 >
+
+  {/* Download Receipt Button */}
+  {receiptNumber && (
+    <button
+      onClick={handlePrintReceipt}
+      style={{
+        padding: "14px 26px",
+        borderRadius: 12,
+        border: "none",
+        background: "#16a34a",
+        color: "#fff",
+        fontWeight: 700,
+        cursor: "pointer",
+        boxShadow:
+          "0 10px 20px rgba(22,163,74,0.25)"
+      }}
+    >
+      Download Receipt
+    </button>
+  )}
+
   {/* Cancel Button */}
   <button
     onClick={() => setShowCollect(false)}
@@ -863,11 +1099,13 @@ const fetchDashboardData = async () => {
       color: "#fff",
       fontWeight: 700,
       cursor: "pointer",
-      boxShadow: "0 10px 20px rgba(37,99,235,0.25)"
+      boxShadow:
+        "0 10px 20px rgba(37,99,235,0.25)"
     }}
   >
     Collect Fee
   </button>
+
 </div>
     </div>
   </div>

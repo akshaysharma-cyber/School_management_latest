@@ -1,5 +1,5 @@
-  import React, { useState, useEffect } from "react";
-  import { apiFetch } from "../utils/apiFetch";
+import React, { useState, useEffect } from "react";
+import { apiFetch } from "../utils/apiFetch";
 
 
 export default function AttendancePage() {
@@ -9,44 +9,47 @@ export default function AttendancePage() {
   const [filter, setFilter] = useState("all");
   const [saved, setSaved] = useState(false);
   const [className, setClassName] = useState("");
-const [section, setSection] = useState("");
-const user = JSON.parse(localStorage.getItem("user"));
-const [attendanceDate, setAttendanceDate] =
-  useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const user = JSON.parse(localStorage.getItem("user"));
+  const [attendanceDate, setAttendanceDate] =
+    useState(
+      new Date().toISOString().split("T")[0]
+    );
 
 
   useEffect(() => {
 
-  fetchStudents();
+    if (className) {
 
-  fetchAttendanceByDate();
+      fetchStudents();
 
-}, [
-  className,
-  section,
-  attendanceDate
-]);
+      fetchAttendanceByDate();
 
-  const fetchStudents = async (schid=user.schoolId,cls = className, sec = section) => {
-  try {
-    const url = `http://localhost:8089/api/attendance/students?schoolId=${schid}&className=${cls}&section=${sec}`;
+    }
 
-    console.log("FETCH URL:", url);
+  }, [className, attendanceDate]);
 
-    const response = await fetch(url);
+  const fetchStudents = async (schid = user.schoolId, cls = className) => {
+    try {
+      const url = `http://localhost:8089/api/attendance/students?schoolId=${schid}&className=${cls}`;
 
-    const data = await response.json();
-    console.log("API RESPONSE:", data);
+      console.log("FETCH URL:", url);
 
-    setStudents(Array.isArray(data) ? data : []);
-  } catch (error) {
-    console.error("Error fetching students:", error);
-  }
-};
+      const response = await apiFetch(url);
 
-  const toggle = (id) => setAttendance(a => ({ ...a, [id]: !a[id] }));
+      const data = await response.json();
+      console.log("API RESPONSE:", data);
+
+      setStudents(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  };
+
+  const toggle = (id) =>
+    setAttendance(a => ({
+      ...a,
+      [id]: a[id] === false ? true : false
+    }));
   const markAll = (val) => setAttendance(a => { const n = { ...a }; students.forEach(s => n[s.id] = val); return n; });
 
   const presentCount = Object.values(attendance).filter(Boolean).length;
@@ -54,96 +57,197 @@ const [attendanceDate, setAttendanceDate] =
   const pct = Math.round((presentCount / students.length) * 100);
 
   const filtered = students.filter(s => {
-  const name = (s.fullName || "").toLowerCase();
-  const matchSearch = name.includes(search.toLowerCase());
+    const name = (s.fullName || "").toLowerCase();
+    const matchSearch = name.includes(search.toLowerCase());
 
-  const matchFilter =
-    filter === "all" ||
-    (filter === "present" ? attendance[s.id] : !attendance[s.id]);
+    const matchFilter =
+      filter === "all" ||
+      (filter === "present" ? attendance[s.id] : !attendance[s.id]);
 
-  return matchSearch && matchFilter;
-});
+    return matchSearch && matchFilter;
+  });
 
 
-const fetchAttendanceByDate = async () => {
+  const fetchAttendanceByDate = async () => {
 
-  try {
+    try {
 
-    const response = await apiFetch(
+      const response = await apiFetch(
 
-      `http://localhost:8089/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&section=${section}&date=${attendanceDate}`
+        `http://localhost:8089/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&date=${attendanceDate}`
 
-    );
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    console.log("DATE ATTENDANCE =", data);
+      console.log("DATE ATTENDANCE =", data);
 
-    const attendanceMap = {};
+      const attendanceMap = {};
 
-    data.forEach((item) => {
+      data.forEach((item) => {
 
-      attendanceMap[item.studentId] =
-        item.status === "PRESENT";
+        attendanceMap[item.studentId] =
+          item.status === "PRESENT";
 
-    });
+      });
 
-    setAttendance(attendanceMap);
+      setAttendance(attendanceMap);
 
-  } catch (error) {
+    } catch (error) {
 
-    console.error(
-      "Attendance fetch error:",
-      error
-    );
-  }
-};
+      console.error(
+        "Attendance fetch error:",
+        error
+      );
+    }
+  };
 
   const handleSave = async () => {
-  try {
-    const payload = {
-      schoolId: user.schoolId,
-      className: className,
-      section: section,
-      date: attendanceDate,
 
-      markedStudents: students.map((s) => ({
-        studentId: s.id,
-        status: attendance[s.id] ? "PRESENT" : "ABSENT",
-      })),
-    };
+    try {
 
-    console.log("SAVE PAYLOAD:", payload);
+      // ==============================
+      // VALIDATION
+      // ==============================
 
-    const response = await apiFetch(
-      "http://localhost:8089/api/attendance/mark",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      if (!className) {
+
+        alert("Please select class");
+
+        return;
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to save attendance");
+      // ==============================
+      // PAYLOAD
+      // ==============================
+
+      const payload = {
+
+        schoolId: user.schoolId,
+
+        className: className,
+
+        date: attendanceDate,
+
+        role: user.role,
+
+        // Only absent students sent
+        markedStudents: students
+          .filter(
+            (s) => attendance[s.id] === false
+          )
+          .map((s) => ({
+
+            studentId: s.id,
+
+            status: "ABSENT",
+
+          })),
+      };
+
+      console.log(
+        "ATTENDANCE PAYLOAD:",
+        payload
+      );
+
+      // ==============================
+      // API CALL
+      // ==============================
+
+      const response = await apiFetch(
+
+        "http://localhost:8089/api/attendance/mark",
+
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(payload),
+        }
+      );
+
+      // ==============================
+      // SAFE JSON PARSE
+      // ==============================
+
+      let data = {};
+
+      try {
+
+        data = await response.json();
+
+      } catch {
+
+        data = {};
+      }
+
+      // ==============================
+      // ERROR HANDLING
+      // ==============================
+
+      if (!response.ok) {
+
+        alert(
+
+          data.message ||
+
+          "Failed to save attendance"
+
+        );
+
+        return;
+      }
+
+      // ==============================
+      // SUCCESS
+      // ==============================
+
+      alert(
+
+        data.message ||
+
+        "Attendance saved successfully"
+
+      );
+
+      setSaved(true);
+
+      // Refresh attendance
+      fetchAttendanceByDate();
+
+      setTimeout(() => {
+
+        setSaved(false);
+
+      }, 2500);
+
+    } catch (error) {
+
+      console.error(
+
+        "Error saving attendance:",
+
+        error
+      );
+
+      alert(
+
+        error.message ||
+
+        "Something went wrong"
+
+      );
     }
+  };
 
-    const data = await response.json();
-    console.log("SAVE RESPONSE:", data);
+  const today =
+    new Date().toISOString().split("T")[0];
 
-    setSaved(true);
-
-    setTimeout(() => {
-      setSaved(false);
-    }, 2500);
-
-  } catch (error) {
-    console.error("Error saving attendance:", error);
-    alert("Failed to save attendance");
-  }
-};
+  const isOldDate =
+    attendanceDate !== today;
 
   return (
     <div>
@@ -152,201 +256,174 @@ const fetchAttendanceByDate = async () => {
       {/* Filters Row */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    background: "#fff",
-    borderRadius: 12,
-    padding: "10px 16px",
-    boxShadow: "0 2px 8px rgba(67,97,238,0.07)",
-    minWidth: 260,
-    position: "relative",
-    cursor: "pointer"
-  }}
->
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: "#fff",
+            borderRadius: 12,
+            padding: "10px 16px",
+            boxShadow: "0 2px 8px rgba(67,97,238,0.07)",
+            minWidth: 260,
+            position: "relative",
+            cursor: "pointer"
+          }}
+        >
 
-  {/* CALENDAR ICON */}
+          {/* CALENDAR ICON */}
 
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <rect
-      x="3"
-      y="4"
-      width="18"
-      height="18"
-      rx="2"
-      stroke="#8898b8"
-      strokeWidth="1.8"
-    />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="18"
+              rx="2"
+              stroke="#8898b8"
+              strokeWidth="1.8"
+            />
 
-    <line
-      x1="16"
-      y1="2"
-      x2="16"
-      y2="6"
-      stroke="#8898b8"
-      strokeWidth="1.8"
-    />
+            <line
+              x1="16"
+              y1="2"
+              x2="16"
+              y2="6"
+              stroke="#8898b8"
+              strokeWidth="1.8"
+            />
 
-    <line
-      x1="8"
-      y1="2"
-      x2="8"
-      y2="6"
-      stroke="#8898b8"
-      strokeWidth="1.8"
-    />
+            <line
+              x1="8"
+              y1="2"
+              x2="8"
+              y2="6"
+              stroke="#8898b8"
+              strokeWidth="1.8"
+            />
 
-    <line
-      x1="3"
-      y1="10"
-      x2="21"
-      y2="10"
-      stroke="#8898b8"
-      strokeWidth="1.8"
-    />
-  </svg>
+            <line
+              x1="3"
+              y1="10"
+              x2="21"
+              y2="10"
+              stroke="#8898b8"
+              strokeWidth="1.8"
+            />
+          </svg>
 
-  {/* SELECTED DATE */}
+          {/* SELECTED DATE */}
 
-  <span
-    style={{
-      fontSize: 13,
-      fontWeight: 600,
-      color: "#1a2744",
-      flex: 1
-    }}
-  >
-    {new Date(attendanceDate).toLocaleDateString(
-      "en-IN",
-      {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      }
-    )}
-  </span>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#1a2744",
+              flex: 1
+            }}
+          >
+            {new Date(attendanceDate).toLocaleDateString(
+              "en-IN",
+              {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              }
+            )}
+          </span>
 
-  {/* HIDDEN DATE INPUT */}
+          {/* HIDDEN DATE INPUT */}
 
-  <input
-    type="date"
-    value={attendanceDate}
-    onChange={(e) =>
-      setAttendanceDate(e.target.value)
-    }
-    style={{
-      position: "absolute",
-      inset: 0,
-      opacity: 0,
-      cursor: "pointer"
-    }}
-  />
+          <input
+            type="date"
+            value={attendanceDate}
+            onChange={(e) =>
+              setAttendanceDate(e.target.value)
+            }
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0,
+              cursor: "pointer"
+            }}
+          />
 
-  {/* DROPDOWN ICON */}
+          {/* DROPDOWN ICON */}
 
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <polyline
-      points="6 9 12 15 18 9"
-      stroke="#8898b8"
-      strokeWidth="2"
-    />
-  </svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <polyline
+              points="6 9 12 15 18 9"
+              stroke="#8898b8"
+              strokeWidth="2"
+            />
+          </svg>
 
-</div>
+        </div>
 
         <div style={{ display: "flex", gap: 10 }}>
-  
-  {/* Class */}
-  {/* Class Dropdown */}
-<select
-  value={className}
-  onChange={(e) => setClassName(e.target.value)}
-  style={{
-    border: "none",
-    outline: "none",
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#1a2744",
-    background: "none",
-    cursor: "pointer",
-    fontFamily: "inherit",
-    padding: "10px 14px",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
-  }}
->
-  <option value="">Select Class</option>
 
-  {[
-    "Nursery",
-    "LKG",
-    "UKG",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12"
-  ].map((c) => (
-    <option key={c} value={c}>
-      {["Nursery", "LKG", "UKG"].includes(c)
-        ? c
-        : `Class ${c}`}
-    </option>
-  ))}
-</select>
+          {/* Class */}
+          {/* Class Dropdown */}
+          <select
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
+            style={{
+              border: "none",
+              outline: "none",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#1a2744",
+              background: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              padding: "10px 14px",
+              borderRadius: 10,
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
+            }}
+          >
+            <option value="">Select Class</option>
+
+            {[
+              "Nursery",
+              "LKG",
+              "UKG",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12"
+            ].map((c) => (
+              <option key={c} value={c}>
+                {["Nursery", "LKG", "UKG"].includes(c)
+                  ? c
+                  : `Class ${c}`}
+              </option>
+            ))}
+          </select>
 
 
 
-  {/* Section */}
- {/* Section Dropdown */}
-<select
-  value={section}
-  onChange={(e) => setSection(e.target.value)}
-  style={{
-    border: "none",
-    outline: "none",
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#1a2744",
-    background: "none",
-    cursor: "pointer",
-    fontFamily: "inherit",
-    padding: "10px 14px",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
-  }}
->
-  <option value="">Select Section</option>
 
-  {["A", "B", "C", "D"].map((s) => (
-    <option key={s} value={s}>
-      Section {s}
-    </option>
-  ))}
-</select>
 
-</div>
+        </div>
         <button style={{ marginLeft: "auto", background: "#4361ee", color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="18" y1="20" x2="18" y2="10" stroke="#fff" strokeWidth="2" /><line x1="12" y1="20" x2="12" y2="4" stroke="#fff" strokeWidth="2" /><line x1="6" y1="20" x2="6" y2="14" stroke="#fff" strokeWidth="2" /></svg>
           View Report
@@ -405,24 +482,18 @@ const fetchAttendanceByDate = async () => {
         {filtered.map((s, i) => (
           <div key={s.admissionNumber} style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px 100px", padding: "14px 24px", borderBottom: i < filtered.length - 1 ? "1px solid #f5f6fc" : "none", alignItems: "center" }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#8898b8" }}>
-  {s.admissionNumber}
-</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: s.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: s.textColor, flexShrink: 0 }}
-              >{(s.fullName || "")
-    .split(" ")
-    .map(n => n[0])
-    .join("")
-    .toUpperCase()}</div>
+              {s.admissionNumber}
+            </span>
+            <div style={{ display: "flex", alignItems: "center" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: "#1a2744" }}>
-  {s.fullName}
-</span>
+                {s.fullName}
+              </span>
             </div>
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 14px", borderRadius: 20, fontSize: 12.5, fontWeight: 700, background: attendance[s.id] ? "#f0fdf4" : "#fef2f2", color: attendance[s.id] ? "#22c55e" : "#ef4444", width: "fit-content" }}>
               {attendance[s.id] ? "Present" : "Absent"}
             </span>
             <label className="att-toggle">
-              <input type="checkbox" checked={attendance[s.id]} onChange={() => toggle(s.id)} />
+              <input type="checkbox" checked={attendance[s.id] || false} onChange={() => toggle(s.id)} />
               <span className="att-slider"></span>
             </label>
           </div>
@@ -439,10 +510,91 @@ const fetchAttendanceByDate = async () => {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#5a6783" strokeWidth="1.8" /></svg>
               Send SMS to Absent Parents
             </button>
-            <button onClick={handleSave} style={{ display: "flex", alignItems: "center", gap: 8, background: saved ? "#22c55e" : "#4361ee", color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 12px ${saved ? "rgba(34,197,94,0.3)" : "rgba(67,97,238,0.3)"}`, transition: "all 0.2s" }}>
-              {saved ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" /></svg>
-                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="#fff" strokeWidth="1.8" /><polyline points="17 21 17 13 7 13 7 21" stroke="#fff" strokeWidth="1.8" /><polyline points="7 3 7 8 15 8" stroke="#fff" strokeWidth="1.8" /></svg>}
-              {saved ? "Saved!" : "Save Attendance"}
+            <button
+              onClick={handleSave}
+              disabled={isOldDate}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+
+                background: isOldDate
+                  ? "#cbd5e1"
+                  : saved
+                    ? "#22c55e"
+                    : "#4361ee",
+
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                padding: "10px 18px",
+                fontWeight: 700,
+                fontSize: 13,
+
+                cursor: isOldDate
+                  ? "not-allowed"
+                  : "pointer",
+
+                opacity: isOldDate ? 0.7 : 1,
+
+                fontFamily: "inherit",
+
+                boxShadow: isOldDate
+                  ? "none"
+                  : `0 4px 12px ${saved
+                    ? "rgba(34,197,94,0.3)"
+                    : "rgba(67,97,238,0.3)"
+                  }`,
+
+                transition: "all 0.2s",
+              }}
+            >
+              {saved ? (
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <polyline
+                    points="20 6 9 17 4 12"
+                    stroke="#fff"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                    stroke="#fff"
+                    strokeWidth="1.8"
+                  />
+
+                  <polyline
+                    points="17 21 17 13 7 13 7 21"
+                    stroke="#fff"
+                    strokeWidth="1.8"
+                  />
+
+                  <polyline
+                    points="7 3 7 8 15 8"
+                    stroke="#fff"
+                    strokeWidth="1.8"
+                  />
+                </svg>
+              )}
+
+              {isOldDate
+                ? "Editing Closed"
+                : saved
+                  ? "Saved!"
+                  : "Save Attendance"}
             </button>
           </div>
         </div>

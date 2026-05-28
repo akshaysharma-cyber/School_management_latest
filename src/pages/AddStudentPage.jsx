@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
+import { validateMobile } from "../utils/validation";
 
 
 
@@ -27,7 +28,7 @@ export default function AddStudentPage({ onBack }) {
     admissionNo: "", fullName: "", dob: "", gender: "", bloodGroup: "",
     category: "", religion: "", nationality: "",
     parentName: "", relationship: "", mobile: "", email: "", address: "",
-    classVal: "", section: "", studentPhoto: null,
+    classVal: "", studentPhoto: null, academicYear: "",
     birthCertificate: null
   });
   const [errors, setErrors] = useState({});
@@ -43,7 +44,11 @@ export default function AddStudentPage({ onBack }) {
     if (!form.gender) e.gender = "Required";
     if (!form.parentName.trim()) e.parentName = "Required";
     if (!form.relationship) e.relationship = "Required";
-    if (!/^\d{10}$/.test(form.mobile)) e.mobile = "Enter valid 10-digit number";
+    const mobileError = validateMobile(form.mobile);
+
+if (mobileError) {
+  e.mobile = mobileError;
+}
     if (!form.address.trim()) e.address = "Required";
     if (!form.classVal) e.classVal = "Required";
     return e;
@@ -51,97 +56,152 @@ export default function AddStudentPage({ onBack }) {
 
   const handleSubmit = async () => {
 
-  const e = validate();
+    const e = validate();
 
-  if (Object.keys(e).length) {
-    setErrors(e);
-    return;
-  }
-
-  try {
-
-    const payload = {
-
-      schoolId: schoolId,
-
-      admissionNumber: form.admissionNo,
-      fullName: form.fullName,
-      dateOfBirth: form.dob,
-      gender: form.gender,
-      bloodGroup: form.bloodGroup,
-
-      category: form.category,
-      religion: form.religion,
-      nationality: form.nationality,
-
-      parentName: form.parentName,
-      relationship: form.relationship,
-      parentMobile: form.mobile,
-      parentEmail: form.email,
-      address: form.address,
-
-      className: form.classVal,
-      section: form.section
-    };
-
-    const formData = new FormData();
-
-    // SEND JSON OBJECT
-    formData.append(
-  "student",
-  JSON.stringify(payload)
-);
-
-    // SEND PHOTO
-    if (form.studentPhoto) {
-
-      formData.append(
-        "studentPhoto",
-        form.studentPhoto
-      );
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
     }
 
-    // SEND CERTIFICATE
-    if (form.birthCertificate) {
+    try {
 
+      const payload = {
+
+        schoolId: schoolId,
+
+        admissionNumber: form.admissionNo,
+        fullName: form.fullName,
+        dateOfBirth: form.dob,
+        gender: form.gender,
+        bloodGroup: form.bloodGroup,
+
+        category: form.category,
+        religion: form.religion,
+        nationality: form.nationality,
+
+        parentName: form.parentName,
+        relationship: form.relationship,
+        parentMobile: form.mobile,
+        parentEmail: form.email,
+        address: form.address,
+
+        className: form.classVal,
+
+        academicYear: form.academicYear
+      };
+
+      const formData = new FormData();
+
+      // SEND JSON OBJECT
       formData.append(
-        "birthCertificate",
-        form.birthCertificate
+        "student",
+        JSON.stringify(payload)
       );
-    }
 
-    const response = await apiFetch(
-      "http://localhost:8089/api/students/add",
-      {
-        method: "POST",
-        body: formData
+      // SEND PHOTO
+      if (form.studentPhoto) {
+
+        formData.append(
+          "studentPhoto",
+          form.studentPhoto
+        );
       }
-    );
 
-    const data = await response.json();
+      // SEND CERTIFICATE
+      if (form.birthCertificate) {
 
-    if (response.ok) {
+        formData.append(
+          "birthCertificate",
+          form.birthCertificate
+        );
+      }
 
-      alert("Student added successfully");
+      let response;
 
-      fetchStudents();
+      if (form.id) {
 
-      setSubmitted(true);
+        // UPDATE
+        response = await apiFetch(
+          `http://localhost:8089/api/students/update/${form.id}`,
+          {
+            method: "PUT",
 
-    } else {
+            headers: {
+              "Content-Type": "application/json"
+            },
 
-      alert(data.message || "Failed");
+            body: JSON.stringify(payload)
+          }
+        );
+
+      } else {
+
+        // ADD NEW
+        const formData = new FormData();
+
+        formData.append(
+          "student",
+          JSON.stringify(payload)
+        );
+
+        if (form.studentPhoto) {
+          formData.append(
+            "studentPhoto",
+            form.studentPhoto
+          );
+        }
+
+        if (form.birthCertificate) {
+          formData.append(
+            "birthCertificate",
+            form.birthCertificate
+          );
+        }
+
+        response = await apiFetch(
+          "http://localhost:8089/api/students/add",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+
+        if (form.id) {
+
+          alert("Student updated successfully");
+
+          setPage("list");
+
+        } else {
+
+          alert("Student added successfully");
+
+          setSubmitted(true);
+
+        }
+
+        fetchStudents();
+
+      } else {
+
+        alert(data.message || "Failed");
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Server error");
 
     }
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert("Server error");
-
-  }
-};
+  };
 
   const fetchStudents = async () => {
 
@@ -234,7 +294,8 @@ export default function AddStudentPage({ onBack }) {
       address: student.address || "",
 
       classVal: student.className || "",
-      section: student.section || ""
+      academicYear: student.academicYear || ""
+
     });
 
     setPage("edit");
@@ -362,7 +423,7 @@ export default function AddStudentPage({ onBack }) {
               fontWeight: 700
             }}
           >
-            + Add Student
+           {form.id ? "Update Student" : "Add Student"}
           </button>
         </div>
 
@@ -600,7 +661,8 @@ export default function AddStudentPage({ onBack }) {
           </p>
 
           <p>
-            <b>Section:</b> {selectedStudent.section}
+            <b>Academic Year:</b>
+            {selectedStudent.academicYear}
           </p>
 
           <p>
@@ -695,7 +757,16 @@ export default function AddStudentPage({ onBack }) {
         )}
         {row(
           <>
-            {field("Mobile Number", "mobile", <input className="add-student-input" style={inputStyle(errors.mobile)} placeholder="Enter 10-digit mobile number" value={form.mobile} onChange={e => update("mobile", e.target.value)} />, true)}
+            {field("Mobile Number", "mobile", <input className="add-student-input" style={inputStyle(errors.mobile)} placeholder="Enter 10-digit mobile number" value={form.mobile} onChange={(e) => {
+  const value = e.target.value;
+
+  update("mobile", value);
+
+  setErrors(prev => ({
+    ...prev,
+    mobile: validateMobile(value)
+  }));
+}} />, true)}
             {field("Email", "email", <input className="add-student-input" style={inputStyle(false)} placeholder="Enter email address (optional)" value={form.email} onChange={e => update("email", e.target.value)} />)}
           </>
         )}
@@ -736,7 +807,40 @@ export default function AddStudentPage({ onBack }) {
                 </option>
               ))}
             </select>, true)}
-            {field("Section", "section", <input className="add-student-input" style={inputStyle(false)} placeholder="e.g., A" value={form.section} onChange={e => update("section", e.target.value)} />)}
+            {field(
+              "Academic Year",
+              "academicYear",
+
+              <select
+                className="add-student-input"
+                style={selectStyle(errors.academicYear)}
+                value={form.academicYear}
+                onChange={(e) =>
+                  update(
+                    "academicYear",
+                    e.target.value
+                  )
+                }
+              >
+                <option value="">
+                  Select Academic Year
+                </option>
+
+                <option value="2025-26">
+                  2025-26
+                </option>
+
+                <option value="2026-27">
+                  2026-27
+                </option>
+
+                <option value="2027-28">
+                  2027-28
+                </option>
+
+              </select>,
+              true
+            )}
           </>
         )}
       </div>
@@ -782,33 +886,33 @@ export default function AddStudentPage({ onBack }) {
               <label style={labelStyle}>Birth Certificate (Optional)</label>
               <p style={{ margin: "0 0 8px", fontSize: 12, color: "#b0bbc9" }}>PDF, JPG, PNG (Max 5MB)</p>
               <div
-  style={{
-    border: "2px dashed #e8ecf4",
-    borderRadius: 12,
-    padding: "28px 20px",
-    textAlign: "center",
-    background: "#fafbff"
-  }}
->
+                style={{
+                  border: "2px dashed #e8ecf4",
+                  borderRadius: 12,
+                  padding: "28px 20px",
+                  textAlign: "center",
+                  background: "#fafbff"
+                }}
+              >
 
-  <input
-    type="file"
-    accept=".pdf,image/*"
-    onChange={(e) =>
-      update(
-        "birthCertificate",
-        e.target.files[0]
-      )
-    }
-  />
+                <input
+                  type="file"
+                  accept=".pdf,image/*"
+                  onChange={(e) =>
+                    update(
+                      "birthCertificate",
+                      e.target.files[0]
+                    )
+                  }
+                />
 
-  {form.birthCertificate && (
-    <p style={{ marginTop: 10 }}>
-      {form.birthCertificate.name}
-    </p>
-  )}
+                {form.birthCertificate && (
+                  <p style={{ marginTop: 10 }}>
+                    {form.birthCertificate.name}
+                  </p>
+                )}
 
-</div>
+              </div>
             </div>
           </>
         )}
@@ -831,7 +935,7 @@ export default function AddStudentPage({ onBack }) {
           View Students
         </button>
         <button onClick={onBack} style={{ background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "11px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-        
+
       </div>
     </div>
   );

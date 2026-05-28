@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
+import { validateMobile } from "../utils/validation";
 
 export default function AddTeacherPage({ onBack }) {
   const [form, setForm] = useState({
@@ -10,19 +11,19 @@ export default function AddTeacherPage({ onBack }) {
   const [errors, setErrors] = useState({});
   const [showPass, setShowPass] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-const [showTeacherList, setShowTeacherList] = useState(false);
+  const [showTeacherList, setShowTeacherList] = useState(false);
 
-const [teachers, setTeachers] = useState([]);
-const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [teachers, setTeachers] = useState([]);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
 
-const [viewModal, setViewModal] = useState(false);
-const [editModal, setEditModal] = useState(false);
+  const [viewModal, setViewModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
 
-const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
 
-const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
-const teachersPerPage = 5;
+  const teachersPerPage = 5;
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -30,7 +31,10 @@ const teachersPerPage = 5;
     const e = {};
     if (!form.fullName.trim()) e.fullName = "Required";
     if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter valid email";
-    if (!/^\d{10}$/.test(form.phone)) e.phone = "Enter valid 10-digit number";
+    const mobileError = validateMobile(form.phone);
+
+    if (mobileError)
+      e.phone = mobileError;
     if (!form.employeeId.trim()) e.employeeId = "Required";
     if (!form.qualification.trim()) e.qualification = "Required";
     if (!form.subject) e.subject = "Required";
@@ -40,251 +44,263 @@ const teachersPerPage = 5;
   };
 
   const handleSubmit = async () => {
-  const e = validate();
+    const e = validate();
 
-  if (Object.keys(e).length) {
-    setErrors(e);
-    return;
-  }
-
-  try {
-    // Get logged in user data
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    const payload = {
-      schoolId: user.schoolId, // same school id
-      userId: user.id, // same logged in user id
-      fullName: form.fullName,
-      email: form.email,
-      mobile: form.phone,
-      password: form.password,
-      dateOfBirth: form.dob,
-      gender: form.gender,
-      address: form.address,
-      employeeId: form.employeeId,
-      qualification: form.qualification,
-      subject: form.subject,
-      joiningDate: form.joiningDate
-    };
-
-    const response = await apiFetch("http://localhost:8089/api/teachers/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to add teacher");
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
     }
 
-    const data = await response.json();
+    try {
+      // Get logged in user data
+      const user = JSON.parse(localStorage.getItem("user"));
 
-    console.log("Teacher Added:", data);
+      const payload = {
+        schoolId: user.schoolId, // same school id
+        userId: user.id, // same logged in user id
+        fullName: form.fullName,
+        email: form.email,
+        mobile: form.phone,
+        password: form.password,
+        dateOfBirth: form.dob,
+        gender: form.gender,
+        address: form.address,
+        employeeId: form.employeeId,
+        qualification: form.qualification,
+        subject: form.subject,
+        joiningDate: form.joiningDate
+      };
 
-    setSubmitted(true);
+      const response = await apiFetch(
+        "http://localhost:8089/api/teachers/add",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
 
-  } catch (error) {
-    console.error(error);
-    alert("Error adding teacher");
-  }
-};
+      const data = await response.json();
 
-const fetchTeachers = async () => {
+      if (!response.ok) {
 
-  try {
+        throw new Error(
+          data.message || "Failed to add teacher"
+        );
 
-    const user = JSON.parse(localStorage.getItem("user"));
+      }
 
-    const response = await apiFetch(
-      `http://localhost:8089/api/teachers/all?schoolId=${user.schoolId}`
+      console.log("Teacher Added:", data);
+
+      alert(data.message);
+
+      setSubmitted(true);
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(error.message);
+
+    }
+  };
+
+  const fetchTeachers = async () => {
+
+    try {
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const response = await apiFetch(
+        `http://localhost:8089/api/teachers/all?schoolId=${user.schoolId}`
+      );
+
+      const data = await response.json();
+
+      setTeachers(data);
+
+    } catch (error) {
+
+      console.error("Error fetching teachers", error);
+
+    }
+  };
+
+  useEffect(() => {
+
+    if (showTeacherList) {
+      fetchTeachers();
+    }
+
+  }, [showTeacherList]);
+
+
+  const deleteTeacher = async (id) => {
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this teacher?"
     );
 
-    const data = await response.json();
+    if (!confirmDelete) return;
 
-    setTeachers(data);
+    try {
 
-  } catch (error) {
+      await apiFetch(
+        `http://localhost:8089/api/teachers/delete/${id}`,
+        {
+          method: "DELETE"
+        }
+      );
 
-    console.error("Error fetching teachers", error);
+      fetchTeachers();
 
-  }
-};
+    } catch (error) {
 
-useEffect(() => {
+      console.error("Delete error", error);
 
-  if(showTeacherList) {
-    fetchTeachers();
-  }
+    }
+  };
 
-}, [showTeacherList]);
+  const updateTeacher = async () => {
 
+    try {
 
-const deleteTeacher = async (id) => {
+      await apiFetch(
+        `http://localhost:8089/api/teachers/update/${selectedTeacher.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(selectedTeacher)
+        }
+      );
 
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this teacher?"
+      setEditModal(false);
+
+      fetchTeachers();
+
+    } catch (error) {
+
+      console.error("Update error", error);
+
+    }
+  };
+
+  const filteredTeachers = teachers.filter((teacher) =>
+    teacher.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+    teacher.employeeId?.toLowerCase().includes(search.toLowerCase()) ||
+    teacher.subject?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if(!confirmDelete) return;
+  const indexOfLastTeacher = currentPage * teachersPerPage;
 
-  try {
+  const indexOfFirstTeacher =
+    indexOfLastTeacher - teachersPerPage;
 
-    await apiFetch(
-      `http://localhost:8089/api/teachers/delete/${id}`,
-      {
-        method: "DELETE"
-      }
+  const currentTeachers =
+    filteredTeachers.slice(
+      indexOfFirstTeacher,
+      indexOfLastTeacher
     );
 
-    fetchTeachers();
-
-  } catch (error) {
-
-    console.error("Delete error", error);
-
-  }
-};
-
-const updateTeacher = async () => {
-
-  try {
-
-    await apiFetch(
-      `http://localhost:8089/api/teachers/update/${selectedTeacher.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(selectedTeacher)
-      }
-    );
-
-    setEditModal(false);
-
-    fetchTeachers();
-
-  } catch (error) {
-
-    console.error("Update error", error);
-
-  }
-};
-
-const filteredTeachers = teachers.filter((teacher) =>
-  teacher.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-  teacher.employeeId?.toLowerCase().includes(search.toLowerCase()) ||
-  teacher.subject?.toLowerCase().includes(search.toLowerCase())
-);
-
-const indexOfLastTeacher = currentPage * teachersPerPage;
-
-const indexOfFirstTeacher =
-  indexOfLastTeacher - teachersPerPage;
-
-const currentTeachers =
-  filteredTeachers.slice(
-    indexOfFirstTeacher,
-    indexOfLastTeacher
-  );
-
-const totalPages =
-  Math.ceil(filteredTeachers.length / teachersPerPage);
+  const totalPages =
+    Math.ceil(filteredTeachers.length / teachersPerPage);
 
 
 
 
-  
 
-  if (submitted) {    
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "60vh",
-        gap: 16
-      }}
-    >
+
+  if (submitted) {
+    return (
       <div
         style={{
-          width: 72,
-          height: 72,
-          borderRadius: "50%",
-          background: "#e8faf9",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          height: "60vh",
+          gap: 16
         }}
       >
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-          <polyline
-            points="20 6 9 17 4 12"
-            stroke="#2ec4b6"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-
-      <h2
-        style={{
-          margin: 0,
-          fontSize: 22,
-          fontWeight: 800,
-          color: "#1a2744"
-        }}
-      >
-        Teacher Added Successfully!
-      </h2>
-
-      <p style={{ margin: 0, color: "#8898b8" }}>
-        {form.fullName} has been added.
-      </p>
-
-      <div style={{ display: "flex", gap: 12 }}>
-
-        <button
-          onClick={() => {
-            setSubmitted(false);
-            setShowTeacherList(true);
-          }}
+        <div
           style={{
-            background: "#4361ee",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 24px",
-            fontWeight: 700,
-            cursor: "pointer"
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            background: "#e8faf9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
-          View Teachers
-        </button>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <polyline
+              points="20 6 9 17 4 12"
+              stroke="#2ec4b6"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
 
-        <button
-          onClick={onBack}
+        <h2
           style={{
-            background: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 10,
-            padding: "10px 24px",
-            fontWeight: 700,
-            cursor: "pointer"
+            margin: 0,
+            fontSize: 22,
+            fontWeight: 800,
+            color: "#1a2744"
           }}
         >
-          Back
-        </button>
+          Teacher Added Successfully!
+        </h2>
 
+        <p style={{ margin: 0, color: "#8898b8" }}>
+          {form.fullName} has been added.
+        </p>
+
+        <div style={{ display: "flex", gap: 12 }}>
+
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setShowTeacherList(true);
+            }}
+            style={{
+              background: "#4361ee",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 24px",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            View Teachers
+          </button>
+
+          <button
+            onClick={onBack}
+            style={{
+              background: "#fff",
+              border: "1px solid #ddd",
+              borderRadius: 10,
+              padding: "10px 24px",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Back
+          </button>
+
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   const inputStyle = (err) => ({
     width: "100%", padding: "11px 14px", border: `1.5px solid ${err ? "#e53e3e" : "#e8ecf4"}`,
@@ -304,106 +320,106 @@ const totalPages =
   );
 
   const thStyle = {
-  textAlign: "left",
-  padding: "14px",
-  fontSize: 13,
-  color: "#5a6783",
-  fontWeight: 700,
-  borderBottom: "1px solid #edf2f7"
-};
+    textAlign: "left",
+    padding: "14px",
+    fontSize: 13,
+    color: "#5a6783",
+    fontWeight: 700,
+    borderBottom: "1px solid #edf2f7"
+  };
 
-const tdStyle = {
-  padding: "14px",
-  borderBottom: "1px solid #edf2f7",
-  fontSize: 14,
-  color: "#1a2744"
-};
+  const tdStyle = {
+    padding: "14px",
+    borderBottom: "1px solid #edf2f7",
+    fontSize: 14,
+    color: "#1a2744"
+  };
 
-const viewBtn = {
-  background: "#eef2ff",
-  color: "#4361ee",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const viewBtn = {
+    background: "#eef2ff",
+    color: "#4361ee",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-const editBtn = {
-  background: "#ecfdf3",
-  color: "#16a34a",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const editBtn = {
+    background: "#ecfdf3",
+    color: "#16a34a",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-const deleteBtn = {
-  background: "#fef2f2",
-  color: "#dc2626",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 12px",
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const deleteBtn = {
+    background: "#fef2f2",
+    color: "#dc2626",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
 
-const modalOverlay = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 999
-};
+  const modalOverlay = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 999
+  };
 
-const modalBox = {
-  background: "#fff",
-  borderRadius: 20,
-  padding: 30,
-  width: 500,
-  maxWidth: "90%"
-};
+  const modalBox = {
+    background: "#fff",
+    borderRadius: 20,
+    padding: 30,
+    width: 500,
+    maxWidth: "90%"
+  };
 
-const modalTitle = {
-  marginTop: 0,
-  marginBottom: 20,
-  color: "#1a2744"
-};
+  const modalTitle = {
+    marginTop: 0,
+    marginBottom: 20,
+    color: "#1a2744"
+  };
 
-const modalInput = {
-  width: "100%",
-  padding: "12px 14px",
-  borderRadius: 10,
-  border: "1px solid #ddd",
-  outline: "none",
-  fontSize: 14
-};
+  const modalInput = {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: 10,
+    border: "1px solid #ddd",
+    outline: "none",
+    fontSize: 14
+  };
 
-const closeBtn = {
-  background: "#f3f4f6",
-  border: "none",
-  padding: "10px 18px",
-  borderRadius: 10,
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const closeBtn = {
+    background: "#f3f4f6",
+    border: "none",
+    padding: "10px 18px",
+    borderRadius: 10,
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
-const saveBtn = {
-  background: "#4361ee",
-  color: "#fff",
-  border: "none",
-  padding: "10px 18px",
-  borderRadius: 10,
-  cursor: "pointer",
-  fontWeight: 700
-};
+  const saveBtn = {
+    background: "#4361ee",
+    color: "#fff",
+    border: "none",
+    padding: "10px 18px",
+    borderRadius: 10,
+    cursor: "pointer",
+    fontWeight: 700
+  };
 
   return (
     <div>
@@ -411,7 +427,7 @@ const saveBtn = {
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28, background: "#fff", borderRadius: 20, padding: "20px 28px", boxShadow: "0 2px 12px rgba(67,97,238,0.06)" }}>
-        
+
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6" stroke="#8898b8" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
@@ -420,28 +436,28 @@ const saveBtn = {
         </div>
         <div>
 
-  <h2
-    style={{
-      margin: 0,
-      fontSize: 20,
-      fontWeight: 800,
-      color: "#1a2744"
-    }}
-  >
-    Add Teacher
-  </h2>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 800,
+              color: "#1a2744"
+            }}
+          >
+            Add Teacher
+          </h2>
 
-  <p
-    style={{
-      margin: 0,
-      color: "#8898b8",
-      fontSize: 13
-    }}
-  >
-    Enter the details below to add a new teacher.
-  </p>
+          <p
+            style={{
+              margin: 0,
+              color: "#8898b8",
+              fontSize: 13
+            }}
+          >
+            Enter the details below to add a new teacher.
+          </p>
 
-</div>
+        </div>
       </div>
 
       <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 12px rgba(67,97,238,0.06)", marginBottom: 24 }}>
@@ -454,7 +470,18 @@ const saveBtn = {
         )}
         {row(
           <>
-            {field("Phone Number", "phone", <input className="add-teacher-input" style={inputStyle(errors.phone)} placeholder="Enter phone number" value={form.phone} onChange={e => update("phone", e.target.value)} />, true)}
+            {field("Phone Number", "phone", <input className="add-teacher-input" style={inputStyle(errors.phone)} placeholder="Enter phone number" value={form.phone} onChange={(e) => {
+              const value = e.target.value
+                .replace(/\D/g, "")
+                .slice(0, 10);
+
+              update("phone", value);
+
+              setErrors(prev => ({
+                ...prev,
+                phone: validateMobile(value)
+              }));
+            }} />, true)}
             {field("Date of Birth", "dob", <input className="add-teacher-input" type="date" style={inputStyle(false)} value={form.dob} onChange={e => update("dob", e.target.value)} />)}
           </>
         )}
@@ -504,301 +531,304 @@ const saveBtn = {
       </div>
 
       <div
-  style={{
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 12,
-    paddingBottom: 32
-  }}
->
- <button
-    onClick={() => {
-      setShowTeacherList(!showTeacherList);
-      fetchTeachers();
-    }}
-    style={{
-      background: "#4361ee",
-      color: "#fff",
-      border: "none",
-      borderRadius: 10,
-      padding: "11px 28px",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer",
-      fontFamily: "inherit",
-      boxShadow: "0 4px 12px rgba(67,97,238,0.3)"
-    }}
-  >
-    {showTeacherList ? "Hide Teachers" : "View Teachers"}
-  </button>
-
-  <button
-    onClick={onBack}
-    style={{
-      background: "#fff",
-      border: "1.5px solid #e8ecf4",
-      color: "#5a6783",
-      borderRadius: 10,
-      padding: "11px 28px",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer",
-      fontFamily: "inherit"
-    }}
-  >
-    Cancel
-  </button>
-
-  <button
-    onClick={handleSubmit}
-    style={{
-      background: "#4361ee",
-      color: "#fff",
-      border: "none",
-      borderRadius: 10,
-      padding: "11px 28px",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer",
-      fontFamily: "inherit",
-      boxShadow: "0 4px 12px rgba(67,97,238,0.3)"
-    }}
-  >
-    Add Teacher
-  </button>
-</div>
-        {/* ================= TEACHER LIST ================= */}
-
-{showTeacherList && (
-
-  <div
-    style={{
-      background: "#fff",
-      borderRadius: 20,
-      padding: 24,
-      boxShadow: "0 2px 12px rgba(67,97,238,0.06)",
-      marginTop: 30
-    }}
-  >
-
-    {/* Header */}
-
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20
-      }}
-    >
-
-      <h2
         style={{
-          margin: 0,
-          fontSize: 20,
-          fontWeight: 800,
-          color: "#1a2744"
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 12,
+          paddingBottom: 32
         }}
       >
-        Teachers List
-      </h2>
+        <button
+          onClick={handleSubmit}
+          style={{
+            background: "#4361ee",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "11px 28px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 12px rgba(67,97,238,0.3)"
+          }}
+        >
+          Add Teacher
+        </button>
 
-      <input
-        placeholder="Search teacher..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: "10px 14px",
-          border: "1px solid #ddd",
-          borderRadius: 10,
-          width: 260,
-          outline: "none"
-        }}
-      />
+        <button
+          onClick={() => {
+            setShowTeacherList(!showTeacherList);
+            fetchTeachers();
+          }}
+          style={{
+            background: "#4361ee",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "11px 28px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 12px rgba(67,97,238,0.3)"
+          }}
+        >
+          {showTeacherList ? "Hide Teachers" : "View Teachers"}
+        </button>
 
-    </div>
+        <button
+          onClick={onBack}
+          style={{
+            background: "#fff",
+            border: "1.5px solid #e8ecf4",
+            color: "#5a6783",
+            borderRadius: 10,
+            padding: "11px 28px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }}
+        >
+          Cancel
+        </button>
 
-    {/* TABLE */}
 
-    <div style={{ overflowX: "auto" }}>
+      </div>
+      {/* ================= TEACHER LIST ================= */}
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse"
-        }}
-      >
+      {showTeacherList && (
 
-        <thead>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 20,
+            padding: 24,
+            boxShadow: "0 2px 12px rgba(67,97,238,0.06)",
+            marginTop: 30
+          }}
+        >
 
-          <tr
+          {/* Header */}
+
+          <div
             style={{
-              background: "#f7f9fc"
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20
             }}
           >
 
-            <th style={thStyle}>Name</th>
-            <th style={thStyle}>Employee ID</th>
-            <th style={thStyle}>Subject</th>
-            <th style={thStyle}>Mobile</th>
-            <th style={thStyle}>Actions</th>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 20,
+                fontWeight: 800,
+                color: "#1a2744"
+              }}
+            >
+              Teachers List
+            </h2>
 
-          </tr>
+            <input
+              placeholder="Search teacher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                padding: "10px 14px",
+                border: "1px solid #ddd",
+                borderRadius: 10,
+                width: 260,
+                outline: "none"
+              }}
+            />
 
-        </thead>
+          </div>
 
-        <tbody>
+          {/* TABLE */}
 
-          {currentTeachers.map((teacher) => (
+          <div style={{ overflowX: "auto" }}>
 
-            <tr key={teacher.id}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse"
+              }}
+            >
 
-              <td style={tdStyle}>{teacher.fullName}</td>
+              <thead>
 
-              <td style={tdStyle}>
-                {teacher.employeeId}
-              </td>
-
-              <td style={tdStyle}>
-                {teacher.subject}
-              </td>
-
-              <td style={tdStyle}>
-                {teacher.mobile}
-              </td>
-
-              <td style={tdStyle}>
-
-                <div
+                <tr
                   style={{
-                    display: "flex",
-                    gap: 10
+                    background: "#f7f9fc"
                   }}
                 >
 
-                  {/* VIEW */}
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Employee ID</th>
+                  <th style={thStyle}>Subject</th>
+                  <th style={thStyle}>Mobile</th>
+                  <th style={thStyle}>Actions</th>
 
-                  <button
-                    onClick={() => {
-                      setSelectedTeacher(teacher);
-                      setViewModal(true);
-                    }}
-                    style={viewBtn}
-                  >
-                    View
-                  </button>
+                </tr>
 
-                  {/* EDIT */}
+              </thead>
 
-                  
+              <tbody>
 
-                  {/* DELETE */}
+                {currentTeachers.map((teacher) => (
 
-                  <button
-                    onClick={() => deleteTeacher(teacher.id)}
-                    style={deleteBtn}
-                  >
-                    Delete
-                  </button>
+                  <tr key={teacher.id}>
 
-                </div>
+                    <td style={tdStyle}>{teacher.fullName}</td>
 
-              </td>
+                    <td style={tdStyle}>
+                      {teacher.employeeId}
+                    </td>
 
-            </tr>
+                    <td style={tdStyle}>
+                      {teacher.subject}
+                    </td>
 
-          ))}
+                    <td style={tdStyle}>
+                      {teacher.mobile}
+                    </td>
 
-        </tbody>
+                    <td style={tdStyle}>
 
-      </table>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10
+                        }}
+                      >
 
+                        {/* VIEW */}
+
+                        <button
+                          onClick={() => {
+                            setSelectedTeacher(teacher);
+                            setViewModal(true);
+                          }}
+                          style={viewBtn}
+                        >
+                          View
+                        </button>
+
+                        {/* EDIT */}
+
+
+
+                        {/* DELETE */}
+
+                        <button
+                          onClick={() => deleteTeacher(teacher.id)}
+                          style={deleteBtn}
+                        >
+                          Delete
+                        </button>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+          {/* PAGINATION */}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 10,
+              marginTop: 24
+            }}
+          >
+
+            {[...Array(totalPages)].map((_, index) => (
+
+              <button
+                key={index}
+                onClick={() => setCurrentPage(index + 1)}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: "none",
+                  cursor: "pointer",
+                  background:
+                    currentPage === index + 1
+                      ? "#4361ee"
+                      : "#eef0fd",
+                  color:
+                    currentPage === index + 1
+                      ? "#fff"
+                      : "#1a2744",
+                  fontWeight: 700
+                }}
+              >
+                {index + 1}
+              </button>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      )}
+
+      {/* VIEW MODAL */}
+
+      {viewModal && selectedTeacher && (
+
+        <div style={modalOverlay}>
+
+          <div style={modalBox}>
+
+            <h2 style={modalTitle}>
+              Teacher Details
+            </h2>
+
+            <div style={{ lineHeight: 2 }}>
+
+              <p><b>Name:</b> {selectedTeacher.fullName}</p>
+
+              <p><b>Email:</b> {selectedTeacher.email}</p>
+
+              <p><b>Mobile:</b> {selectedTeacher.mobile}</p>
+
+              <p><b>Subject:</b> {selectedTeacher.subject}</p>
+
+              <p><b>Qualification:</b> {selectedTeacher.qualification}</p>
+
+              <p><b>Gender:</b> {selectedTeacher.gender}</p>
+
+            </div>
+
+            <button
+              onClick={() => setViewModal(false)}
+              style={closeBtn}
+            >
+              Close
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
     </div>
 
-    {/* PAGINATION */}
-
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: 10,
-        marginTop: 24
-      }}
-    >
-
-      {[...Array(totalPages)].map((_, index) => (
-
-        <button
-          key={index}
-          onClick={() => setCurrentPage(index + 1)}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: "none",
-            cursor: "pointer",
-            background:
-              currentPage === index + 1
-                ? "#4361ee"
-                : "#eef0fd",
-            color:
-              currentPage === index + 1
-                ? "#fff"
-                : "#1a2744",
-            fontWeight: 700
-          }}
-        >
-          {index + 1}
-        </button>
-
-      ))}
-
-    </div>
-
-  </div>
-
-)}
-
-{/* VIEW MODAL */}
-
-{viewModal && selectedTeacher && (
-
-  <div style={modalOverlay}>
-
-    <div style={modalBox}>
-
-      <h2 style={modalTitle}>
-        Teacher Details
-      </h2>
-
-      <div style={{ lineHeight: 2 }}>
-
-        <p><b>Name:</b> {selectedTeacher.fullName}</p>
-
-        <p><b>Email:</b> {selectedTeacher.email}</p>
-
-        <p><b>Mobile:</b> {selectedTeacher.mobile}</p>
-
-        <p><b>Subject:</b> {selectedTeacher.subject}</p>
-
-        <p><b>Qualification:</b> {selectedTeacher.qualification}</p>
-
-        <p><b>Gender:</b> {selectedTeacher.gender}</p>
-
-      </div>
-
-      <button
-        onClick={() => setViewModal(false)}
-        style={closeBtn}
-      >
-        Close
-      </button>
-
-    </div>
-
-  </div>
-
-)}
- </div>
-   
-);}
+  );
+}
