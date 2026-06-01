@@ -27,59 +27,86 @@ export default function FeeStructurePage({ onBack }) {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const handleSave = async () => {
-    try {
 
-      const payload = {
-        schoolId: user.schoolId,
+  try {
 
-        className: classVal
-          .replace("Class ", "")
-          .replace(/[A-Z]/g, "")
-          .trim(),
+    const payload = {
 
-        academicYear: year.replace(/\s/g, ""),
+      schoolId: user.schoolId,
 
-        frequency: freq.toUpperCase(),
+      className: classVal
+        .replace("Class ", "")
+        .replace(/[A-Z]/g, "")
+        .trim(),
 
-        items: items.map((item) => ({
-          componentName: item.name,
-          amount: parseFloat(item.amount) || 0,
-        })),
-      };
+      academicYear: year.replace(/\s/g, ""),
 
-      console.log("FEE PAYLOAD:", payload);
+      frequency: freq.toUpperCase(),
 
-      const response = await apiFetch(
-        "http://localhost:8089/api/fees/structure",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      items: items.map((item) => ({
+        componentName: item.name,
+        amount: parseFloat(item.amount) || 0,
+      })),
+    };
 
-      if (!response.ok) {
-        throw new Error("Failed to save fee structure");
+    console.log("FEE PAYLOAD:", payload);
+
+    const response = await apiFetch(
+      "http://localhost:8089/api/fees/structure",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(payload),
       }
+    );
 
-      const data = await response.text();
+    // =========================
+    // READ MESSAGE
+    // =========================
 
-      console.log("SAVE RESPONSE:", data);
+    const message = await response.text();
 
-      setSaved(true);
+    // =========================
+    // ERROR MESSAGE
+    // =========================
 
-      setTimeout(() => {
-        setSaved(false);
-      }, 2500);
+    if (!response.ok) {
 
-    } catch (error) {
-      console.error("Error saving fee structure:", error);
-      alert("Failed to save fee structure");
+      alert(message);
+
+      return;
     }
-  };
 
+    // =========================
+    // SUCCESS MESSAGE
+    // =========================
+
+    alert(message);
+
+    setSaved(true);
+
+    setTimeout(() => {
+
+      setSaved(false);
+
+    }, 2500);
+
+  } catch (error) {
+
+    console.error(
+      "Error saving fee structure:",
+      error
+    );
+
+    alert(
+      "Failed to save fee structure"
+    );
+  }
+};
 
   const handleAssignFee = async () => {
 

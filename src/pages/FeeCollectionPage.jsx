@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
-import jsPDF from "jspdf";
 
 
 
@@ -272,11 +271,7 @@ const handleCollectFee = async () => {
    setReceiptNumber(data);
 
   alert("Payment submitted successfully");
-  setTimeout(() => {
-
-  handlePrintReceipt();
-
-}, 500);
+ 
 
       fetchFeeDetails(selectedStudent);
 
@@ -295,134 +290,54 @@ const handleCollectFee = async () => {
   }
 };
 
-const handlePrintReceipt = () => {
+const handleDownloadReceipt = async () => {
 
-  if (!selectedStudent) {
-    alert("Please select student");
-    return;
+  try {
+
+    const user =
+      JSON.parse(localStorage.getItem("user"));
+
+    const response = await fetch(
+      `http://localhost:8089/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
+      {
+        method: "GET"
+      }
+    );
+
+    if (!response.ok) {
+
+      alert("Failed to download receipt");
+      return;
+    }
+
+    const blob = await response.blob();
+
+    const url =
+      window.URL.createObjectURL(blob);
+
+    const a =
+      document.createElement("a");
+
+    a.href = url;
+
+    a.download = "Fee_Receipt.pdf";
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("Error downloading receipt");
   }
-
-  const student = students.find(
-    (s) => s.id == selectedStudent
-  );
-
-  const doc = new jsPDF();
-
-  let y = 20;
-
-  doc.setFontSize(18);
-  doc.text("FEE RECEIPT", 80, y);
-
-  y += 15;
-
-  doc.setFontSize(12);
-
-  doc.text(
-    `Student Name: ${student?.fullName || ""}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Class: ${selectedClass}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Father Name: ${fatherName}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Mobile: ${mobileNumber}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Receipt No: ${receiptNumber}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Payment Date: ${paymentDate || new Date().toLocaleDateString()}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Paid Amount: ₹ ${newPaymentAmount}`,
-    20,
-    y
-  );
-
-  y += 10;
-
-  doc.text(
-    `Remaining Due: ₹ ${
-      dueAmount - Number(newPaymentAmount || 0)
-    }`,
-    20,
-    y
-  );
-
-  y += 20;
-
-  doc.setFontSize(14);
-
-  doc.text("Previous Payments", 20, y);
-
-  y += 10;
-
-  paymentHistory.forEach((p, index) => {
-
-  doc.setFontSize(11);
-
-  doc.text(
-    `Receipt No: ${p.receiptNumber || "-"}`,
-    20,
-    y
-  );
-
-  y += 7;
-
-  doc.text(
-    `Date: ${p.paymentDate || "-"}`,
-    20,
-    y
-  );
-
-  y += 7;
-
-  doc.text(
-    `Amount: ₹ ${p.amount || 0}`,
-    20,
-    y
-  );
-
-  y += 12;
-
-});
-
-  doc.save(
-    `Receipt_${receiptNumber}.pdf`
-  );
 };
+
 
 useEffect(() => {
 
@@ -1055,7 +970,7 @@ const fetchDashboardData = async () => {
   {/* Download Receipt Button */}
   {receiptNumber && (
     <button
-      onClick={handlePrintReceipt}
+      onClick={handleDownloadReceipt}
       style={{
         padding: "14px 26px",
         borderRadius: 12,
