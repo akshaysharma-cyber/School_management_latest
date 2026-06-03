@@ -38,3 +38,68 @@ export function getPasswordStrength(password) {
   ];
   return { score, label: levels[score - 1]?.label || "", color: levels[score - 1]?.color || "" };
 }
+
+export function validateExamName(examName) {
+  if (!examName || !examName.trim()) {
+    return "Exam Name is required";
+  }
+  return null;
+}
+
+export function validateAcademicYear(academicYear) {
+  if (!academicYear) {
+    return "Academic Year is required";
+  }
+  return null;
+}
+
+export function validateExamType(examType) {
+  if (!examType) {
+    return "Exam Type is required";
+  }
+  return null;
+}
+
+export function validateClass(selectedClass) {
+  if (!selectedClass) {
+    return "Class is required";
+  }
+  return null;
+}
+
+export function validateSubjects(subjects) {
+  if (!subjects || subjects.length === 0) {
+    return "Select at least one subject";
+  }
+  return null;
+}
+
+export function validatePassingPercentage(value) {
+  const percentage = Number(value);
+
+  if (isNaN(percentage)) {
+    return "Passing Percentage is required";
+  }
+
+  if (percentage < 1 || percentage > 100) {
+    return "Passing Percentage must be between 1 and 100";
+  }
+
+  return null;
+}
+
+export function validateExamDates(startDate, endDate) {
+  if (!startDate) {
+    return "Start Date is required";
+  }
+
+  if (!endDate) {
+    return "End Date is required";
+  }
+
+  if (new Date(startDate) > new Date(endDate)) {
+    return "Start Date cannot be after End Date";
+  }
+
+  return null;
+}
