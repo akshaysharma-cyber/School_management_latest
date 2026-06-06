@@ -30,6 +30,7 @@ const ACADEMIC_YEARS = [
 const PAGE_SIZE = 10;
 
 export default function MarksEntryPage({ onBack }) {
+  
   const [examSetupMissing, setExamSetupMissing] = useState(false);
   const [selectedAcademicYear, setSelectedAcademicYear] =
     useState("");
@@ -67,29 +68,46 @@ export default function MarksEntryPage({ onBack }) {
   const totalPages = Math.ceil(students.length / PAGE_SIZE);
 
 
-  const subjMarks = students.map(s => marks[s.id]?.[activeSubject] || 0);
-  const avg = subjMarks.length
-    ? (subjMarks.reduce((a, b) => a + b, 0) / subjMarks.length).toFixed(2)
+  const currentSubjectId =
+  subjects[activeSubject]?.subjectId;
+
+const subjMarks = students.map(
+  s => Number(
+    marks[s.id]?.[currentSubjectId] || 0
+  )
+);
+
+const enteredMarks = subjMarks.filter(
+  m => m > 0
+);
+
+  const avg =
+  enteredMarks.length > 0
+    ? (
+        enteredMarks.reduce(
+          (a, b) => a + b,
+          0
+        ) / enteredMarks.length
+      ).toFixed(2)
     : 0;
+    
   const highest =
     subjMarks.length > 0
       ? Math.max(...subjMarks)
       : 0;
 
-  const lowest =
-    subjMarks.length > 0
-      ? Math.min(...subjMarks)
-      : 0;
+  
 
-  const autoFill = () => {
-    setMarks(prev => {
-      const updated = { ...prev };
-      students.forEach(s => {
-        updated[s.id] = { ...updated[s.id], [activeSubject]: Math.floor(Math.random() * 40) + 55 };
-      });
-      return updated;
-    });
-  };
+const lowest =
+  enteredMarks.length > 0
+    ? Math.min(...enteredMarks)
+    : 0;
+
+      const totalMarks =
+  subjects.length > 0
+    ? subjects[0].totalMarks
+    : 0;
+
 
 
   useEffect(() => {
@@ -260,6 +278,7 @@ export default function MarksEntryPage({ onBack }) {
 
       const payload = {
         schoolId: user.schoolId,
+        examId: activeSub.examId,
         className: selectedClass,
         subjectId: activeSub.subjectId,
 
@@ -271,7 +290,8 @@ export default function MarksEntryPage({ onBack }) {
       };
 
       console.log("SAVE PAYLOAD =", payload);
-
+      console.log("ACTIVE SUBJECT =", activeSub);
+      console.log("PAYLOAD =", payload);
       const res = await apiFetch(
         "http://localhost:8089/api/marks/save",
         {
@@ -301,6 +321,57 @@ export default function MarksEntryPage({ onBack }) {
       alert("Error saving marks");
     }
   };
+
+  useEffect(() => {
+
+  if (
+    subjects.length === 0 ||
+    !subjects[activeSubject]
+  ) {
+    return;
+  }
+
+  const loadSavedMarks = async () => {
+
+    try {
+
+      const user =
+        JSON.parse(localStorage.getItem("user") || "{}");
+
+      const activeSub = subjects[activeSubject];
+
+      const res = await apiFetch(
+  `http://localhost:8089/api/marks/saved?schoolId=${user.schoolId}&examId=${activeSub.examId}&subjectId=${activeSub.subjectId}&className=${selectedClass}`
+);
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      const loadedMarks = {};
+
+      data.forEach(item => {
+
+        loadedMarks[item.studentId] = {
+          [activeSub.subjectId]:
+            item.marksObtained
+        };
+      });
+
+      setMarks(prev => ({
+        ...prev,
+        ...loadedMarks
+      }));
+
+    } catch (err) {
+
+      console.error(err);
+    }
+  };
+
+  loadSavedMarks();
+
+}, [subjects, activeSubject]);
 
   return (
     <div>
@@ -439,7 +510,16 @@ export default function MarksEntryPage({ onBack }) {
               <div style={{ width: 1, background: "#e8ecf4" }} />
               <div style={{ textAlign: "center" }}>
                 <p style={{ margin: 0, fontSize: 12, color: "#8898b8", fontWeight: 600 }}>Total Marks</p>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#4361ee" }}>300</p>
+                <p
+  style={{
+    margin: 0,
+    fontSize: 18,
+    fontWeight: 800,
+    color: "#4361ee"
+  }}
+>
+  {totalMarks}
+</p>
               </div>
             </div>
           </div>
@@ -480,16 +560,7 @@ export default function MarksEntryPage({ onBack }) {
               ))}
             </div>
           )}
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="me-btn" style={{ background: "#f0f4ff", color: "#4361ee" }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#4361ee" strokeWidth="1.8" strokeLinecap="round" /><polyline points="7 10 12 15 17 10" stroke="#4361ee" strokeWidth="1.8" strokeLinecap="round" /><line x1="12" y1="15" x2="12" y2="3" stroke="#4361ee" strokeWidth="1.8" strokeLinecap="round" /></svg>
-              Download Template
-            </button>
-            <button className="me-btn" onClick={autoFill} style={{ background: "#f0ecff", color: "#7b61ff" }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#7b61ff" strokeWidth="1.8" strokeLinecap="round" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#7b61ff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
-              Auto Fill
-            </button>
-          </div>
+
         </div>
 
 

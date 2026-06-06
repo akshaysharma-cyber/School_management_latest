@@ -5,24 +5,31 @@ const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const SECTIONS = ["A", "B", "C"];
 const PASSING_PCT = 33;
+const EXAM_TYPES = [
+  "Unit Test 1",
+  "Unit Test 2",
+  "Half Yearly",
+  "Pre Board",
+  "Final Exam"
+];
+
+const ACADEMIC_YEARS = [
+  "2026 - 2027",
+  "2027 - 2028",
+  "2028 - 2029",
+  "2029 - 2030"
+];
 
 export default function ResultsPage({ onBack }) {
-  const [exams, setExams] = useState([]);
-
   const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
   const [summary, setSummary] = useState({});
-
-  const [selectedExam, setSelectedExam] = useState("");
-  
-  
-
+  const [selectedExamType, setSelectedExamType] = useState("");
   const [activeSubject, setActiveSubject] = useState(0);
   const [page, setPage] = useState(1);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
 
-  
-const [selectedClass, setSelectedClass] = useState("");
-const [selectedSection, setSelectedSection] = useState("");
 
   // FETCH RESULT API
   useEffect(() => {
@@ -34,7 +41,7 @@ const [selectedSection, setSelectedSection] = useState("");
         const user = JSON.parse(localStorage.getItem("user"));
 
         const res = await apiFetch(
-          `http://localhost:8089/api/results/full-result?schoolId=${user.schoolId}&examId=${selectedExam}&className=${selectedClass}`
+          `http://localhost:8089/api/results/full-result?schoolId=${user.schoolId}&academicYear=${encodeURIComponent(selectedAcademicYear)}&examType=${encodeURIComponent(selectedExamType)}&className=${selectedClass}`
         );
 
         const data = await res.json();
@@ -44,17 +51,25 @@ const [selectedSection, setSelectedSection] = useState("");
         setSubjects(data.subjects || []);
         setStudents(data.students || []);
         setSummary(data.summary || {});
+        setActiveSubject(0);
+        setPage(1);
 
       } catch (err) {
         console.error(err);
       }
     };
 
-    if (selectedExam) {
+    if (
+      selectedAcademicYear &&
+      selectedExamType &&
+      selectedClass
+    ) {
       fetchResults();
     }
 
-  }, [selectedExam, selectedClass, selectedSection]);
+  }, [selectedAcademicYear,
+    selectedExamType,
+    selectedClass]);
 
 
 
@@ -97,95 +112,84 @@ const [selectedSection, setSelectedSection] = useState("");
     page * PAGE_SIZE
   );
 
+   const subjectMarks = students.map(s => getSubjectMarks(s));
 
-  useEffect(() => {
+const subjectAverage =
+  subjectMarks.length > 0
+    ? (
+        subjectMarks.reduce((sum, m) => sum + m, 0)
+        / subjectMarks.length
+      ).toFixed(2)
+    : 0;
 
-  const fetchExams = async () => {
+const subjectPassed =
+  subjectMarks.filter(
+    mark => ((mark / subjectMax) * 100) >= PASSING_PCT
+  ).length;
 
-    try {
-
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      const res = await apiFetch(
-        `http://localhost:8089/api/exams/All-Exam?schoolId=${user.schoolId}`
-      );
-
-      const data = await res.json();
-
-      setExams(data || []);
-
-      
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchExams();
-
-}, []);
-
-
-const passed = students.filter(
-  s => s.result === "Passed"
-).length;
-
-const failed = students.length - passed;
-
-const passPercent =
-  students.length > 0
-    ? ((passed / students.length) * 100).toFixed(2)
+const subjectPassPercent =
+  subjectMarks.length > 0
+    ? (
+        (subjectPassed / subjectMarks.length) * 100
+      ).toFixed(2)
     : 0;
 
 
-    function getGrade(pct) {
+  const passed = summary?.passedStudents || 0;
 
-  if (pct >= 91)
+  const failed = summary?.failedStudents || 0;
+
+  const passPercent = subjectPassPercent;
+
+
+  function getGrade(pct) {
+
+    if (pct >= 91)
+      return {
+        grade: "A1",
+        color: "#2ec4b6",
+        bg: "#e8faf9"
+      };
+
+    if (pct >= 81)
+      return {
+        grade: "A",
+        color: "#4361ee",
+        bg: "#eef0fd"
+      };
+
+    if (pct >= 71)
+      return {
+        grade: "B",
+        color: "#7b61ff",
+        bg: "#f0ecff"
+      };
+
+    if (pct >= 61)
+      return {
+        grade: "C",
+        color: "#f4a261",
+        bg: "#fff4eb"
+      };
+
+    if (pct >= 33)
+      return {
+        grade: "D",
+        color: "#f4a261",
+        bg: "#fff4eb"
+      };
+
     return {
-      grade: "A1",
-      color: "#2ec4b6",
-      bg: "#e8faf9"
+      grade: "F",
+      color: "#e53e3e",
+      bg: "#fff5f5"
     };
+  }
 
-  if (pct >= 81)
-    return {
-      grade: "A",
-      color: "#4361ee",
-      bg: "#eef0fd"
-    };
+  const classAvg = subjectAverage;
 
-  if (pct >= 71)
-    return {
-      grade: "B",
-      color: "#7b61ff",
-      bg: "#f0ecff"
-    };
 
-  if (pct >= 61)
-    return {
-      grade: "C",
-      color: "#f4a261",
-      bg: "#fff4eb"
-    };
-
-  if (pct >= 33)
-    return {
-      grade: "D",
-      color: "#f4a261",
-      bg: "#fff4eb"
-    };
-
-  return {
-    grade: "F",
-    color: "#e53e3e",
-    bg: "#fff5f5"
-  };
-}
-
-const classAvg =
-  summary?.average
-    ? summary.average.toFixed(2)
-    : 0;
+     
 
   return (
     <div>
@@ -219,11 +223,11 @@ const classAvg =
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button className="res-btn" onClick={onBack} style={{ background: "#f5f6fc", color: "#5a6783", padding: "9px 18px" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5" stroke="#5a6783" strokeWidth="1.8" strokeLinecap="round"/><path d="M12 19l-7-7 7-7" stroke="#5a6783" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5" stroke="#5a6783" strokeWidth="1.8" strokeLinecap="round" /><path d="M12 19l-7-7 7-7" stroke="#5a6783" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             Back to Examinations
           </button>
           <button className="res-btn" style={{ background: "#4361ee", color: "#fff", padding: "9px 18px", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/><polyline points="7 10 12 15 17 10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /><polyline points="7 10 12 15 17 10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /><line x1="12" y1="15" x2="12" y2="3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>
             Download Results
           </button>
         </div>
@@ -233,52 +237,67 @@ const classAvg =
       <div style={{ background: "#fff", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(67,97,238,0.06)", marginBottom: 20 }}>
         <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Exam</label>
-            <select
-  className="res-select"
-  value={selectedExam}
-  onChange={(e) => setSelectedExam(e.target.value)}
->
-  <option value="">Select Exam</option>
+            <label
+              style={{
+                display: "block",
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#8898b8",
+                marginBottom: 6
+              }}
+            >
+              Academic Year
+            </label>
 
-  {exams.map((exam) => (
-    <option key={exam.id} value={exam.id}>
-      {exam.examName}
-    </option>
-  ))}
-</select>
+            <select
+              className="res-select"
+              value={selectedAcademicYear}
+              onChange={(e) =>
+                setSelectedAcademicYear(e.target.value)
+              }
+            >
+              <option value="">
+                Select Academic Year
+              </option>
+
+              {ACADEMIC_YEARS.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Exam Type</label>
+            <select
+              className="res-select"
+              value={selectedExamType}
+              onChange={(e) => setSelectedExamType(e.target.value)}
+            >
+              <option value="">Select Exam Type</option>
+
+              {EXAM_TYPES.map(type => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Class</label>
             <select
-  className="res-select"
-  value={selectedClass}
-  onChange={(e) => setSelectedClass(e.target.value)}
->
-  <option value="">Select Class</option>
+              className="res-select"
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+            >
+              <option value="">Select Class</option>
 
-  {CLASSES.map((c) => (
-    <option key={c} value={c}>
-      Class {c}
-    </option>
-  ))}
-</select>
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#8898b8", marginBottom: 6 }}>Select Section</label>
-            <select
-  className="res-select"
-  value={selectedSection}
-  onChange={(e) => setSelectedSection(e.target.value)}
->
-  <option value="">Select Section</option>
-
-  {SECTIONS.map((s) => (
-    <option key={s} value={s}>
-      Section {s}
-    </option>
-  ))}
-</select>
+              {CLASSES.map((c) => (
+                <option key={c} value={c}>
+                  Class {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div style={{ marginLeft: "auto" }}>
             <div style={{ background: "#f0f4ff", borderRadius: 12, padding: "12px 18px", display: "flex", gap: 20 }}>
@@ -305,7 +324,7 @@ const classAvg =
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 20 }}>
         <div style={{ background: "#fff", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(67,97,238,0.06)", display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: "#f0f4ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#4361ee" strokeWidth="1.8"/><circle cx="9" cy="7" r="4" stroke="#4361ee" strokeWidth="1.8"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#4361ee" strokeWidth="1.8" /><circle cx="9" cy="7" r="4" stroke="#4361ee" strokeWidth="1.8" /></svg>
           </div>
           <div>
             <p style={{ margin: 0, fontSize: 12, color: "#8898b8", fontWeight: 600 }}>Class Average</p>
@@ -314,7 +333,7 @@ const classAvg =
         </div>
         <div style={{ background: "#e8faf9", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(46,196,182,0.08)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#2ec4b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#2ec4b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             <p style={{ margin: 0, fontSize: 12, color: "#2ec4b6", fontWeight: 700 }}>Highest Marks</p>
           </div>
           <p style={{ margin: "0 0 2px", fontSize: 28, fontWeight: 800, color: "#2ec4b6" }}>{highestMark}</p>
@@ -322,7 +341,7 @@ const classAvg =
         </div>
         <div style={{ background: "#fff5f5", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(229,62,62,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#e53e3e" strokeWidth="1.8"/><line x1="12" y1="8" x2="12" y2="12" stroke="#e53e3e" strokeWidth="2" strokeLinecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#e53e3e" strokeWidth="2" strokeLinecap="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#e53e3e" strokeWidth="1.8" /><line x1="12" y1="8" x2="12" y2="12" stroke="#e53e3e" strokeWidth="2" strokeLinecap="round" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#e53e3e" strokeWidth="2" strokeLinecap="round" /></svg>
             <p style={{ margin: 0, fontSize: 12, color: "#e53e3e", fontWeight: 700 }}>Lowest Marks</p>
           </div>
           <p style={{ margin: "0 0 2px", fontSize: 28, fontWeight: 800, color: "#e53e3e" }}>{lowestMark}</p>
@@ -330,7 +349,7 @@ const classAvg =
         </div>
         <div style={{ background: "#f0ecff", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(123,97,255,0.08)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 21l4-7 4 7M12 3l-3 7h6L12 3z" stroke="#7b61ff" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 21l4-7 4 7M12 3l-3 7h6L12 3z" stroke="#7b61ff" strokeWidth="1.8" strokeLinejoin="round" /></svg>
             <p style={{ margin: 0, fontSize: 12, color: "#7b61ff", fontWeight: 700 }}>Pass Percentage</p>
           </div>
           <p style={{ margin: "0 0 2px", fontSize: 28, fontWeight: 800, color: "#7b61ff" }}>{passPercent}%</p>
@@ -351,7 +370,7 @@ const classAvg =
             ))}
           </div>
           <button className="res-btn" style={{ background: "#f5f6fc", color: "#5a6783" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="6 9 6 2 18 2 18 9" stroke="#5a6783" strokeWidth="1.8"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="#5a6783" strokeWidth="1.8"/><rect x="6" y="14" width="12" height="8" stroke="#5a6783" strokeWidth="1.8"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="6 9 6 2 18 2 18 9" stroke="#5a6783" strokeWidth="1.8" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="#5a6783" strokeWidth="1.8" /><rect x="6" y="14" width="12" height="8" stroke="#5a6783" strokeWidth="1.8" /></svg>
             Print
           </button>
         </div>
@@ -397,15 +416,15 @@ const classAvg =
           <span style={{ fontSize: 13, color: "#8898b8" }}>Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, students.length)} of {students.length} students</span>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
-           {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: totalPages }, (_, i) => (
 
-  <button
-    key={i + 1} className={`page-btn${page === i + 1 ? " active" : ""}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
+              <button
+                key={i + 1} className={`page-btn${page === i + 1 ? " active" : ""}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
             ))}
             <button className="page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           </div>
         </div>

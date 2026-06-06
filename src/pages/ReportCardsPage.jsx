@@ -46,10 +46,9 @@ export default function ReportCardsPage({ onBack }) {
                 const schoolId =
                     user?.schoolId;
 
-                const res =
-                    await apiFetch(
-                        `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
-                    );
+                const res = await apiFetch(
+  `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
+);
 
                 const data =
                     await res.json();
@@ -78,17 +77,25 @@ export default function ReportCardsPage({ onBack }) {
 
     const loadReport = async () => {
 
-        if (!studentId) {
-            alert("Select Student");
-            return;
-        }
+       if (
+    !academicYear ||
+    !selectedClass ||
+    !studentId
+) {
+    alert(
+      "Please select Academic Year, Class and Student"
+    );
+    return;
+}
 
         try {
 
-            const res =
-                await apiFetch(
-                    `http://localhost:8089/api/report-card/student/${studentId}`
-                );
+           const user =
+  JSON.parse(localStorage.getItem("user"));
+
+const res = await apiFetch(
+  `http://localhost:8089/api/report-card/student?schoolId=${user.schoolId}&studentId=${studentId}&academicYear=${academicYear}&className=${selectedClass}`
+);
 
             if (!res.ok) {
                 throw new Error("Report not found");
@@ -114,85 +121,85 @@ export default function ReportCardsPage({ onBack }) {
 
     const downloadPDF = async () => {
 
-    try {
+        try {
 
-        const button =
-            document.querySelector(".no-print");
+            const button =
+                document.querySelector(".no-print");
 
-        if (button) {
-            button.style.display = "none";
+            if (button) {
+                button.style.display = "none";
+            }
+
+            await new Promise(
+                r => setTimeout(r, 100)
+            );
+
+            const canvas =
+                await html2canvas(
+                    reportRef.current,
+                    {
+                        scale: 2
+                    }
+                );
+
+            if (button) {
+                button.style.display = "block";
+            }
+
+            const imgData =
+                canvas.toDataURL(
+                    "image/png"
+                );
+
+            const pdf =
+                new jsPDF(
+                    "p",
+                    "mm",
+                    "a4"
+                );
+
+            const width =
+                pdf.internal.pageSize.getWidth();
+
+            const height =
+                canvas.height
+                * width
+                / canvas.width;
+
+            pdf.addImage(
+                imgData,
+                "PNG",
+                0,
+                0,
+                width,
+                height
+            );
+
+            pdf.save(
+                `${report.studentName}_ReportCard.pdf`
+            );
+
+        }
+        catch (err) {
+
+            document
+                .querySelector(".no-print")
+                ?.style &&
+                (
+                    document.querySelector(
+                        ".no-print"
+                    ).style.display = "block"
+                );
+
+            console.log(err);
+
+            alert(
+                "PDF generation failed"
+            );
+
         }
 
-        await new Promise(
-            r => setTimeout(r, 100)
-        );
-
-        const canvas =
-            await html2canvas(
-                reportRef.current,
-                {
-                    scale: 2
-                }
-            );
-
-        if (button) {
-            button.style.display = "block";
-        }
-
-        const imgData =
-            canvas.toDataURL(
-                "image/png"
-            );
-
-        const pdf =
-            new jsPDF(
-                "p",
-                "mm",
-                "a4"
-            );
-
-        const width =
-            pdf.internal.pageSize.getWidth();
-
-        const height =
-            canvas.height
-            * width
-            / canvas.width;
-
-        pdf.addImage(
-            imgData,
-            "PNG",
-            0,
-            0,
-            width,
-            height
-        );
-
-        pdf.save(
-            `${report.studentName}_ReportCard.pdf`
-        );
-
-    }
-    catch (err) {
-
-        document
-            .querySelector(".no-print")
-            ?.style &&
-            (
-                document.querySelector(
-                    ".no-print"
-                ).style.display = "block"
-            );
-
-        console.log(err);
-
-        alert(
-            "PDF generation failed"
-        );
-
-    }
-
-};
+    };
 
     return (
         <div>
