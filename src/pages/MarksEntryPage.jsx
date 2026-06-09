@@ -19,10 +19,10 @@ const CLASSES = ["Nursery",
   "12"];
 
 const ACADEMIC_YEARS = [
-  "2026 - 2027",
-  "2027 - 2028",
-  "2028 - 2029",
-  "2029 - 2030",
+  "2026-2027",
+  "2027-2028",
+  "2028-2029",
+  "2029-2030",
 ];
 
 
@@ -90,7 +90,7 @@ const enteredMarks = subjMarks.filter(
         ) / enteredMarks.length
       ).toFixed(2)
     : 0;
-    
+
   const highest =
     subjMarks.length > 0
       ? Math.max(...subjMarks)

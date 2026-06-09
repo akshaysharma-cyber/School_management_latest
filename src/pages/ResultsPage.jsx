@@ -14,10 +14,10 @@ const EXAM_TYPES = [
 ];
 
 const ACADEMIC_YEARS = [
-  "2026 - 2027",
-  "2027 - 2028",
-  "2028 - 2029",
-  "2029 - 2030"
+  "2026-2027",
+  "2027-2028",
+  "2028-2029",
+  "2029-2030"
 ];
 
 export default function ResultsPage({ onBack }) {

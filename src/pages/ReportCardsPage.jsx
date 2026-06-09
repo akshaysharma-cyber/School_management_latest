@@ -27,6 +27,17 @@ export default function ReportCardsPage({ onBack }) {
         "6", "7", "8", "9", "10"
     ];
 
+    const examTypes = [
+  ...new Set(
+    report?.subjects?.flatMap(
+      subject =>
+        subject.exams.map(
+          exam => exam.examType
+        )
+    ) || []
+  )
+];
+
     useEffect(() => {
 
         if (!selectedClass) {
@@ -391,75 +402,113 @@ const res = await apiFetch(
 
                         <table style={table}>
 
-                            <thead>
+    <thead>
 
-                                <tr>
+        <tr>
 
-                                    <th style={cell}>
-                                        Subject
-                                    </th>
+            <th style={cell}>
+                Subject
+            </th>
 
-                                    <th style={cell}>
-                                        Total
-                                    </th>
+            {examTypes.map(exam => (
 
-                                    <th style={cell}>
-                                        Obtained
-                                    </th>
+                <th
+                    key={exam}
+                    style={cell}
+                >
+                    {exam}
+                </th>
 
-                                    <th style={cell}>
-                                        %
-                                    </th>
+            ))}
 
-                                    <th style={cell}>
-                                        Grade
-                                    </th>
+            <th style={cell}>
+                Total
+            </th>
 
-                                </tr>
+            <th style={cell}>
+                %
+            </th>
 
-                            </thead>
+            <th style={cell}>
+                Grade
+            </th>
 
-                            <tbody>
+        </tr>
 
-                                {
-                                    report.subjects?.map((x, index) => (
+    </thead>
 
-                                        <tr
-                                            key={index}
-                                            style={{
-                                                borderBottom:
-                                                    "1px solid #eceff7"
-                                            }}
-                                        >
+    <tbody>
 
-                                            <td style={cell}>
-                                                {x.subject}
-                                            </td>
+        {
+            report.subjects?.map(
+                (subject,index) => (
 
-                                            <td style={cell}>
-                                                {x.total}
-                                            </td>
+                    <tr
+                        key={index}
+                        style={{
+                            borderBottom:
+                                "1px solid #eceff7"
+                        }}
+                    >
 
-                                            <td style={cell}>
-                                                {x.obtained}
-                                            </td>
+                        <td style={cell}>
+                            {subject.subject}
+                        </td>
 
-                                            <td style={cell}>
-                                                {x.percentage}%
-                                            </td>
+                        {
+                            examTypes.map(type => {
 
-                                            <td style={cell}>
-                                                {x.grade}
-                                            </td>
+                                const exam =
+                                    subject.exams.find(
+                                        e =>
+                                            e.examType === type
+                                    );
 
-                                        </tr>
+                                return (
 
-                                    ))
-                                }
+                                    <td
+                                        key={type}
+                                        style={cell}
+                                    >
 
-                            </tbody>
+                                        {
+                                            exam
+                                                ? `${exam.obtained}/${exam.maxMarks}`
+                                                : "-"
+                                        }
 
-                        </table>
+                                    </td>
+
+                                );
+
+                            })
+                        }
+
+                        <td style={cell}>
+
+                            {subject.totalObtained}
+                            /
+                            {subject.totalMax}
+
+                        </td>
+
+                        <td style={cell}>
+                            {subject.percentage.toFixed(2)}%
+                        </td>
+
+                        <td style={cell}>
+                            {subject.grade}
+                        </td>
+
+                    </tr>
+
+                )
+            )
+        }
+
+    </tbody>
+
+</table>
 
                         <div
                             style={{
@@ -470,24 +519,24 @@ const res = await apiFetch(
                         >
 
                             <Summary
-                                label="Total"
-                                value={report.total}
-                            />
+    label="Total"
+    value={report.total}
+/>
 
-                            <Summary
-                                label="Percentage"
-                                value={`${report.percentage}%`}
-                            />
+<Summary
+    label="Obtained"
+    value={report.obtained}
+/>
 
-                            <Summary
-                                label="Grade"
-                                value={report.grade}
-                            />
+<Summary
+    label="Percentage"
+    value={`${report.percentage}%`}
+/>
 
-                            <Summary
-                                label="Rank"
-                                value={report.rank}
-                            />
+<Summary
+    label="Grade"
+    value={report.grade}
+/>
 
                         </div>
 
@@ -540,7 +589,6 @@ function Select({
         </div>
     );
 }
-
 
 function Summary({
     label,
