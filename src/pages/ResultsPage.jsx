@@ -3,7 +3,6 @@ import { apiFetch } from "../utils/apiFetch";
 
 const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-const SECTIONS = ["A", "B", "C"];
 const PASSING_PCT = 33;
 const EXAM_TYPES = [
   "Unit Test 1",

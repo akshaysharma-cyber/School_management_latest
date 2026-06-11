@@ -78,7 +78,9 @@ localStorage.setItem(
       data.role,
 
       fullName:
-      data.fullName
+      data.fullName,
+
+      schoolName: data.schoolName
 
     })
   );

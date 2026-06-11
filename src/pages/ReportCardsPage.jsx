@@ -28,15 +28,15 @@ export default function ReportCardsPage({ onBack }) {
     ];
 
     const examTypes = [
-  ...new Set(
-    report?.subjects?.flatMap(
-      subject =>
-        subject.exams.map(
-          exam => exam.examType
+        ...new Set(
+            report?.subjects?.flatMap(
+                subject =>
+                    subject.exams.map(
+                        exam => exam.examType
+                    )
+            ) || []
         )
-    ) || []
-  )
-];
+    ];
 
     useEffect(() => {
 
@@ -58,8 +58,8 @@ export default function ReportCardsPage({ onBack }) {
                     user?.schoolId;
 
                 const res = await apiFetch(
-  `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
-);
+                    `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
+                );
 
                 const data =
                     await res.json();
@@ -88,25 +88,25 @@ export default function ReportCardsPage({ onBack }) {
 
     const loadReport = async () => {
 
-       if (
-    !academicYear ||
-    !selectedClass ||
-    !studentId
-) {
-    alert(
-      "Please select Academic Year, Class and Student"
-    );
-    return;
-}
+        if (
+            !academicYear ||
+            !selectedClass ||
+            !studentId
+        ) {
+            alert(
+                "Please select Academic Year, Class and Student"
+            );
+            return;
+        }
 
         try {
 
-           const user =
-  JSON.parse(localStorage.getItem("user"));
+            const user =
+                JSON.parse(localStorage.getItem("user"));
 
-const res = await apiFetch(
-  `http://localhost:8089/api/report-card/student?schoolId=${user.schoolId}&studentId=${studentId}&academicYear=${academicYear}&className=${selectedClass}`
-);
+            const res = await apiFetch(
+                `http://localhost:8089/api/report-card/student?schoolId=${user.schoolId}&studentId=${studentId}&academicYear=${academicYear}&className=${selectedClass}`
+            );
 
             if (!res.ok) {
                 throw new Error("Report not found");
@@ -149,7 +149,7 @@ const res = await apiFetch(
                 await html2canvas(
                     reportRef.current,
                     {
-                        scale: 2
+                        scale: 1
                     }
                 );
 
@@ -172,10 +172,12 @@ const res = await apiFetch(
             const width =
                 pdf.internal.pageSize.getWidth();
 
-            const height =
-                canvas.height
-                * width
-                / canvas.width;
+            const pageHeight =
+                pdf.internal.pageSize.getHeight();
+
+            const imgHeight =
+                (canvas.height * width) /
+                canvas.width;
 
             pdf.addImage(
                 imgData,
@@ -183,7 +185,16 @@ const res = await apiFetch(
                 0,
                 0,
                 width,
-                height
+                Math.min(imgHeight, pageHeight)
+            );
+
+            pdf.addImage(
+                imgData,
+                "PNG",
+                0,
+                0,
+                width,
+                imgHeight
             );
 
             pdf.save(
@@ -356,29 +367,100 @@ const res = await apiFetch(
                         style={card}
                     >
 
+                        <div
+                            style={{
+                                textAlign: "center",
+                                marginBottom: "25px"
+                            }}
+                        >
+                            <h1
+                                style={{
+                                    margin: 0,
+                                    fontSize: "28px",
+                                    fontWeight: "700",
+                                    color: "#1E3A8A"
+                                }}
+                            >
+                                {report.schoolName}
+                            </h1>
+
+                            <div
+                                style={{
+                                    marginTop: "6px",
+                                    color: "#64748B",
+                                    fontSize: "14px",
+                                    fontWeight: "500"
+                                }}
+                            >
+                                {report.district}, {report.state}
+                            </div>
+
+                            <h2
+                                style={{
+                                    marginTop: "20px",
+                                    marginBottom: "8px",
+                                    color: "#0F172A",
+                                    fontWeight: "700"
+                                }}
+                            >
+                                ANNUAL REPORT CARD
+                            </h2>
+                            <div
+                                style={{
+                                    color: "#EA580C",
+                                    fontSize: "16px",
+                                    fontWeight: "600"
+                                }}
+                            >
+                                Academic Year : {academicYear}
+                            </div>
+                        </div>
+
+
+
+
                         {/* Student */}
 
                         <div
                             style={{
                                 display: "flex",
-                                justifyContent: "space-between"
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                marginBottom: "20px"
                             }}
                         >
 
                             <div>
 
-                                <h2>
+                                <h2
+                                    style={{
+                                        color: "#059669",
+                                        fontSize: "24px",
+                                        fontWeight: "700",
+                                        marginBottom: "12px"
+                                    }}
+                                >
                                     {report.studentName}
                                 </h2>
 
-                                <p>
-                                    Class :
-                                    {report.className}
+                                <p
+                                    style={{
+                                        color: "#334155",
+                                        fontWeight: "600",
+                                        margin: "4px 0"
+                                    }}
+                                >
+                                    Class : {report.className}
                                 </p>
 
-                                <p>
-                                    Roll :
-                                    {report.rollNumber}
+                                <p
+                                    style={{
+                                        color: "#334155",
+                                        fontWeight: "600",
+                                        margin: "4px 0"
+                                    }}
+                                >
+                                    Roll No : {report.rollNumber}
                                 </p>
 
                             </div>
@@ -396,119 +478,125 @@ const res = await apiFetch(
 
                         </div>
 
-                        <hr />
+                        <hr
+                            style={{
+                                border: "none",
+                                borderTop: "1px solid #d7dbea",
+                                margin: "10px 0 25px"
+                            }}
+                        />
 
                         {/* Table */}
 
                         <table style={table}>
 
-    <thead>
+                            <thead>
 
-        <tr>
+                                <tr>
 
-            <th style={cell}>
-                Subject
-            </th>
+                                    <th style={cell}>
+                                        Subject
+                                    </th>
 
-            {examTypes.map(exam => (
+                                    {examTypes.map(exam => (
 
-                <th
-                    key={exam}
-                    style={cell}
-                >
-                    {exam}
-                </th>
+                                        <th
+                                            key={exam}
+                                            style={cell}
+                                        >
+                                            {exam}
+                                        </th>
 
-            ))}
+                                    ))}
 
-            <th style={cell}>
-                Total
-            </th>
+                                    <th style={cell}>
+                                        Total
+                                    </th>
 
-            <th style={cell}>
-                %
-            </th>
+                                    <th style={cell}>
+                                        %
+                                    </th>
 
-            <th style={cell}>
-                Grade
-            </th>
+                                    <th style={cell}>
+                                        Grade
+                                    </th>
 
-        </tr>
+                                </tr>
 
-    </thead>
+                            </thead>
 
-    <tbody>
+                            <tbody>
 
-        {
-            report.subjects?.map(
-                (subject,index) => (
+                                {
+                                    report.subjects?.map(
+                                        (subject, index) => (
 
-                    <tr
-                        key={index}
-                        style={{
-                            borderBottom:
-                                "1px solid #eceff7"
-                        }}
-                    >
+                                            <tr
+                                                key={index}
+                                                style={{
+                                                    borderBottom:
+                                                        "1px solid #eceff7"
+                                                }}
+                                            >
 
-                        <td style={cell}>
-                            {subject.subject}
-                        </td>
+                                                <td style={cell}>
+                                                    {subject.subject}
+                                                </td>
 
-                        {
-                            examTypes.map(type => {
+                                                {
+                                                    examTypes.map(type => {
 
-                                const exam =
-                                    subject.exams.find(
-                                        e =>
-                                            e.examType === type
-                                    );
+                                                        const exam =
+                                                            subject.exams.find(
+                                                                e =>
+                                                                    e.examType === type
+                                                            );
 
-                                return (
+                                                        return (
 
-                                    <td
-                                        key={type}
-                                        style={cell}
-                                    >
+                                                            <td
+                                                                key={type}
+                                                                style={cell}
+                                                            >
 
-                                        {
-                                            exam
-                                                ? `${exam.obtained}/${exam.maxMarks}`
-                                                : "-"
-                                        }
+                                                                {
+                                                                    exam
+                                                                        ? `${exam.obtained}/${exam.maxMarks}`
+                                                                        : "-"
+                                                                }
 
-                                    </td>
+                                                            </td>
 
-                                );
+                                                        );
 
-                            })
-                        }
+                                                    })
+                                                }
 
-                        <td style={cell}>
+                                                <td style={cell}>
 
-                            {subject.totalObtained}
-                            /
-                            {subject.totalMax}
+                                                    {subject.totalObtained}
+                                                    /
+                                                    {subject.totalMax}
 
-                        </td>
+                                                </td>
 
-                        <td style={cell}>
-                            {subject.percentage.toFixed(2)}%
-                        </td>
+                                                <td style={cell}>
+                                                    {subject.percentage.toFixed(2)}%
+                                                </td>
 
-                        <td style={cell}>
-                            {subject.grade}
-                        </td>
+                                                <td style={cell}>
+                                                    {subject.grade}
+                                                </td>
 
-                    </tr>
+                                            </tr>
 
-                )
-            )
-        }
+                                        )
+                                    )
+                                }
 
-    </tbody>
+                            </tbody>
 
-</table>
+                        </table>
 
                         <div
                             style={{
@@ -519,26 +607,48 @@ const res = await apiFetch(
                         >
 
                             <Summary
-    label="Total"
-    value={report.total}
-/>
+                                label="Total"
+                                value={report.total}
+                                color="#2563EB"
+                            />
 
-<Summary
-    label="Obtained"
-    value={report.obtained}
-/>
+                            <Summary
+                                label="Obtained"
+                                value={report.obtained}
+                                color="#059669"
+                            />
 
-<Summary
-    label="Percentage"
-    value={`${report.percentage}%`}
-/>
+                            <Summary
+                                label="Percentage"
+                                value={`${report.percentage}%`}
+                                color="#EA580C"
+                            />
 
-<Summary
-    label="Grade"
-    value={report.grade}
-/>
+                            <Summary
+                                label="Grade"
+                                value={report.grade}
+                                color="#7C3AED"
+                            />
 
                         </div>
+
+                        <div
+                            style={{
+                                marginTop: "30px",
+                                paddingTop: "12px",
+                                borderTop: "1px solid #e2e8f0",
+                                fontSize: "12px",
+                                color: "#64748B",
+                                textAlign: "center",
+                                lineHeight: "1.6"
+                            }}
+                        >
+                            <strong>Disclaimer:</strong> This is a computer-generated report card and
+                            does not require a physical signature. In case of any discrepancy,
+                            please contact the school administration.
+                        </div>
+
+                        
 
                     </div>
 
@@ -592,19 +702,19 @@ function Select({
 
 function Summary({
     label,
-    value
+    value,
+    color = "#24324a"
 }) {
-
     return (
         <div
             style={{
                 background: "#f5f7ff",
                 padding: 20,
                 borderRadius: 14,
-                minWidth: 150
+                minWidth: 150,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
             }}
         >
-
             <div
                 style={{
                     color: "#8898b8"
@@ -616,12 +726,12 @@ function Summary({
             <div
                 style={{
                     fontSize: 28,
-                    fontWeight: 700
+                    fontWeight: 700,
+                    color
                 }}
             >
                 {value}
             </div>
-
         </div>
     );
 }
@@ -629,7 +739,7 @@ function Summary({
 const card = {
     background: "#fff",
     padding: 30,
-    borderRadius: 20,
+    borderRadius: 0,
     marginBottom: 20
 };
 

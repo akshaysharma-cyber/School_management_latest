@@ -13,14 +13,14 @@ import { apiFetch } from "../utils/apiFetch";
 
 const NAV_ITEMS = [
   { id:"dashboard", label:"Dashboard", icon:<DashboardIcon/> },
-  { id:"students",  label:"Students",  icon:<StudentsIcon/> },
-  { id:"teachers",  label:"Teachers",  icon:<TeachersIcon/> },
-  { id:"attendance",label:"Attendance",icon:<AttendanceIcon/> },
-  { id:"classes",   label:"Classes",   icon:<ClassesIcon/> },
-  { id:"fees",      label:"Fee Collection", icon:<FeesIcon/> },
-  { id:"notices",   label:"Notices",   icon:<NoticesIcon/> },
-  { id:"reports",   label:"Reports",   icon:<ReportsIcon/> },
-  { id:"examinations", label:"Examinations", icon:<ExamIcon/>, hasChildren: true },
+  { id:"students", label:"Students", icon:<StudentsIcon/> },
+  { id:"teachers", label:"Teachers", icon:<TeachersIcon/> },
+  { id:"attendance", label:"Attendance", icon:<AttendanceIcon/> },
+  { id:"classes", label:"Classes", icon:<ClassesIcon/> },
+  { id:"fees", label:"Fee Collection", icon:<FeesIcon/> },
+  { id:"notices", label:"Notices", icon:<NoticesIcon/> },
+  { id:"reports", label:"Reports", icon:<ReportsIcon/> },
+  { id:"examinations", label:"Examinations", icon:<ExamIcon/>, hasChildren:true }
 ];
 
 
@@ -40,8 +40,13 @@ const QUICK_ACTIONS = [
 
 export default function Dashboard({ user, onLogout }) {
   const [expandedMenu, setExpandedMenu] = useState(null);
-  const [activePage, setActivePage] = useState(
-  localStorage.getItem("activePage") || "dashboard"
+ const role =
+  JSON.parse(localStorage.getItem("user"))?.role;
+
+const [activePage, setActivePage] = useState(
+  role === "TEACHER"
+    ? "attendance"
+    : (localStorage.getItem("activePage") || "dashboard")
 );
 
 const [subPage, setSubPage] = useState(
@@ -57,6 +62,11 @@ const [subPage, setSubPage] = useState(
   feesCollectedThisMonth: 0,
 });
 
+
+  const visibleNavItems =
+  role === "TEACHER"
+    ? NAV_ITEMS.filter(item => item.id === "attendance")
+    : NAV_ITEMS;
 
 useEffect(() => {
   localStorage.setItem("activePage", activePage);
@@ -150,7 +160,17 @@ error
               <SchoolLogoIcon/>
             </div>
             <div>
-              <p style={{margin:0,fontWeight:800,fontSize:"14px",color:"#1a2744",lineHeight:1.2}}>Greenfield Primary</p>
+              <p
+  style={{
+    margin:0,
+    fontWeight:800,
+    fontSize:"14px",
+    color:"#1a2744",
+    lineHeight:1.2
+  }}
+>
+  {user?.schoolName || "School Name"}
+</p>
               <p style={{margin:0,fontWeight:600,fontSize:"12px",color:"#8898b8",lineHeight:1.3}}>School</p>
             </div>
           </div>
@@ -158,7 +178,7 @@ error
 
         {/* Nav */}
         <nav style={{flex:1,padding:"16px 0",overflowY:"auto"}}>
-          {NAV_ITEMS.map(item=>(
+          {visibleNavItems.map(item=>(
   <div key={item.id}>
 
     <div
@@ -214,10 +234,15 @@ expandedMenu===item.id
 
         {/* Divider */}
         <div style={{borderTop:"1px solid #eef0f8",padding:"12px 0"}}>
-          <div className={`nav-item${activePage==="settings"?" active":""}`} onClick={()=>setActivePage("settings")}>
-            <SettingsIcon/>
-            Settings
-          </div>
+          {role !== "TEACHER" && (
+  <div
+    className={`nav-item${activePage==="settings"?" active":""}`}
+    onClick={()=>setActivePage("settings")}
+  >
+    <SettingsIcon/>
+    Settings
+  </div>
+)}
         </div>
 
         {/* Help box */}
