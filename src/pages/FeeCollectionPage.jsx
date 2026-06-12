@@ -8,15 +8,15 @@ import { apiFetch } from "../utils/apiFetch";
 
 export default function FeeCollectionPage({ onNavigate }) {
   const [classCollectionData, setClassCollectionData] =
-  useState([]);
+    useState([]);
   const [recentPayments, setRecentPayments] = useState([]);
   const [dashboardData, setDashboardData] =
-  useState({
-    totalFeesDue: 0,
-    feesCollected: 0,
-    pendingAmount: 0,
-    collectionRate: 0
-  });
+    useState({
+      totalFeesDue: 0,
+      feesCollected: 0,
+      pendingAmount: 0,
+      collectionRate: 0
+    });
   const [receiptNumber, setReceiptNumber] = useState("");
   const [page, setPage] = useState(1);
   const [showCollect, setShowCollect] = useState(false);
@@ -34,342 +34,342 @@ export default function FeeCollectionPage({ onNavigate }) {
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [remarks, setRemarks] = useState("");
   const [paymentHistory, setPaymentHistory] =
-  useState([]);
+    useState([]);
 
 
 
   useEffect(() => {
 
-  fetchClassCollection();
+    fetchClassCollection();
 
-}, []);
+  }, []);
 
-const fetchClassCollection = async () => {
-
-  try {
-
-    const user =
-      JSON.parse(localStorage.getItem("user"));
-
-    const response = await apiFetch(
-      `http://localhost:8089/api/fees/class-collection/${user.schoolId}`
-    );
-
-    const data = await response.json();
-
-    const colors = [
-      "#4361ee",
-      "#7b61ff",
-      "#2ec4b6",
-      "#f4a261",
-      "#ef4444",
-      "#22c55e"
-    ];
-
-    const formatted = data.map((item, index) => ({
-      ...item,
-      color: colors[index % colors.length]
-    }));
-
-    setClassCollectionData(formatted);
-
-  } catch (error) {
-
-    console.error(
-      "Error fetching class collection:",
-      error
-    );
-  }
-};
-
-  useEffect(() => {
-
-  fetchRecentPayments();
-
-}, []);
-
-const fetchRecentPayments = async () => {
-
-  try {
-
-    const user =
-      JSON.parse(localStorage.getItem("user"));
-
-    const response = await apiFetch(
-      `http://localhost:8089/api/fees/recent-payments/${user.schoolId}`
-    );
-
-    const data = await response.json();
-
-    setRecentPayments(data);
-
-  } catch (error) {
-
-    console.error(
-      "Error fetching recent payments:",
-      error
-    );
-  }
-};
-  
-
-const fetchStudents = async (className) => {
-  try {
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    const response = await apiFetch(
-      `http://localhost:8089/api/students/by-class/${user.schoolId}/${className}`
-    );
-
-    const data = await response.json();
-
-    setStudents(data);
-  } catch (error) {
-    console.error("Error fetching students:", error);
-  }
-};
-
-
-const fetchFeeDetails = async (studentId) => {
-
-  try {
-
-    const user =
-      JSON.parse(
-        localStorage.getItem("user")
-      );
-
-
-
-    // =========================
-    // FETCH STUDENT FEE DETAILS
-    // =========================
-
-    const response = await apiFetch(
-      `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
-    );
-
-    const data = await response.json();
-
-
-
-    // =========================
-    // SET FEE DATA
-    // =========================
-
-    setStudentFeeId(data.id);
-
-    setTotalAmount(
-      data.totalAmount || 0
-    );
-
-    setPaidAmount(
-      data.paidAmount || 0
-    );
-
-    setDueAmount(
-      data.dueAmount || 0
-    );
-
-    setReceiptNumber(
-      data.receiptNumber || ""
-    );
-
-
-
-    // =========================
-    // FETCH PREVIOUS PAYMENTS
-    // =========================
-
-    const historyResponse =
-      await apiFetch(
-        `http://localhost:8089/api/fees/payment-history/${user.schoolId}/${data.id}`
-      );
-
-
-
-    let historyData = [];
+  const fetchClassCollection = async () => {
 
     try {
 
-      historyData =
-        await historyResponse.json();
+      const user =
+        JSON.parse(localStorage.getItem("user"));
 
-    } catch {
+      const response = await apiFetch(
+        `http://localhost:8089/api/fees/class-collection/${user.schoolId}`
+      );
 
-      historyData = [];
+      const data = await response.json();
+
+      const colors = [
+        "#4361ee",
+        "#7b61ff",
+        "#2ec4b6",
+        "#f4a261",
+        "#ef4444",
+        "#22c55e"
+      ];
+
+      const formatted = data.map((item, index) => ({
+        ...item,
+        color: colors[index % colors.length]
+      }));
+
+      setClassCollectionData(formatted);
+
+    } catch (error) {
+
+      console.error(
+        "Error fetching class collection:",
+        error
+      );
     }
+  };
+
+  useEffect(() => {
+
+    fetchRecentPayments();
+
+  }, []);
+
+  const fetchRecentPayments = async () => {
+
+    try {
+
+      const user =
+        JSON.parse(localStorage.getItem("user"));
+
+      const response = await apiFetch(
+        `http://localhost:8089/api/fees/recent-payments/${user.schoolId}`
+      );
+
+      const data = await response.json();
+
+      setRecentPayments(data);
+
+    } catch (error) {
+
+      console.error(
+        "Error fetching recent payments:",
+        error
+      );
+    }
+  };
+
+
+  const fetchStudents = async (className) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const response = await apiFetch(
+        `http://localhost:8089/api/students/by-class/${user.schoolId}/${className}`
+      );
+
+      const data = await response.json();
+
+      setStudents(data);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  };
+
+
+  const fetchFeeDetails = async (studentId) => {
+
+    try {
+
+      const user =
+        JSON.parse(
+          localStorage.getItem("user")
+        );
 
 
 
-    // =========================
-    // STORE HISTORY
-    // =========================
+      // =========================
+      // FETCH STUDENT FEE DETAILS
+      // =========================
 
-    setPaymentHistory(
-      historyData
-    );
+      const response = await apiFetch(
+        `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
+      );
 
-
-
-  } catch (error) {
-
-    console.error(
-      "Error fetching fee details:",
-      error
-    );
-
-    setPaymentHistory([]);
-
-  }
-};
+      const data = await response.json();
 
 
 
+      // =========================
+      // SET FEE DATA
+      // =========================
 
-const handleCollectFee = async () => {
+      setStudentFeeId(data.id);
 
-  try {
+      setTotalAmount(
+        data.totalAmount || 0
+      );
 
-    console.log(studentFeeId);
-    console.log("Student Fee ID:", studentFeeId);
+      setPaidAmount(
+        data.paidAmount || 0
+      );
 
-    const payload = {
+      setDueAmount(
+        data.dueAmount || 0
+      );
 
-      studentFeeId: studentFeeId,
+      setReceiptNumber(
+        data.receiptNumber || ""
+      );
 
-      amount: Number(newPaymentAmount),
 
-      paymentDate: paymentDate,
 
-      paymentMode: paymentMode.toUpperCase(),
+      // =========================
+      // FETCH PREVIOUS PAYMENTS
+      // =========================
 
-      remarks: remarks
+      const historyResponse =
+        await apiFetch(
+          `http://localhost:8089/api/fees/payment-history/${user.schoolId}/${data.id}`
+        );
 
-    };
 
-    console.log(payload);
 
-    const response = await apiFetch(
-      "http://localhost:8089/api/fees/collect",
-      {
-        method: "POST",
+      let historyData = [];
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+      try {
 
-        body: JSON.stringify(payload)
+        historyData =
+          await historyResponse.json();
+
+      } catch {
+
+        historyData = [];
       }
-    );
 
-    const data = await response.text();
 
-    if (response.ok) {
 
-      alert(data);
-   setReceiptNumber(data);
+      // =========================
+      // STORE HISTORY
+      // =========================
 
-  alert("Payment submitted successfully");
- 
+      setPaymentHistory(
+        historyData
+      );
 
-      fetchFeeDetails(selectedStudent);
 
-      setNewPaymentAmount("");
 
-    } else {
+    } catch (error) {
 
-      alert(data);
+      console.error(
+        "Error fetching fee details:",
+        error
+      );
+
+      setPaymentHistory([]);
+
     }
+  };
 
-  } catch (error) {
 
-    console.error("Collect fee error:", error);
 
-    alert("Error collecting fee");
-  }
-};
 
-const handleDownloadReceipt = async () => {
+  const handleCollectFee = async () => {
 
-  try {
+    try {
 
-    const user =
-      JSON.parse(localStorage.getItem("user"));
+      console.log(studentFeeId);
+      console.log("Student Fee ID:", studentFeeId);
 
-    const response = await fetch(
-      `http://localhost:8089/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
-      {
-        method: "GET"
+      const payload = {
+
+        studentFeeId: studentFeeId,
+
+        amount: Number(newPaymentAmount),
+
+        paymentDate: paymentDate,
+
+        paymentMode: paymentMode.toUpperCase(),
+
+        remarks: remarks
+
+      };
+
+      console.log(payload);
+
+      const response = await apiFetch(
+        "http://localhost:8089/api/fees/collect",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const data = await response.text();
+
+      if (response.ok) {
+
+        //alert(data);
+        setReceiptNumber(data);
+
+        alert("Payment submitted successfully");
+
+
+        fetchFeeDetails(selectedStudent);
+
+        setNewPaymentAmount("");
+
+      } else {
+
+        alert(data);
       }
-    );
 
-    if (!response.ok) {
+    } catch (error) {
 
-      alert("Failed to download receipt");
-      return;
+      console.error("Collect fee error:", error);
+
+      alert("Error collecting fee");
     }
+  };
 
-    const blob = await response.blob();
+  const handleDownloadReceipt = async () => {
 
-    const url =
-      window.URL.createObjectURL(blob);
+    try {
 
-    const a =
-      document.createElement("a");
+      const user =
+        JSON.parse(localStorage.getItem("user"));
 
-    a.href = url;
+      const response = await fetch(
+        `http://localhost:8089/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
+        {
+          method: "GET"
+        }
+      );
 
-    a.download = "Fee_Receipt.pdf";
+      if (!response.ok) {
 
-    document.body.appendChild(a);
+        alert("Failed to download receipt");
+        return;
+      }
 
-    a.click();
+      const blob = await response.blob();
 
-    a.remove();
+      const url =
+        window.URL.createObjectURL(blob);
 
-    window.URL.revokeObjectURL(url);
+      const a =
+        document.createElement("a");
 
-  } catch (error) {
+      a.href = url;
 
-    console.error(error);
+      a.download = "Fee_Receipt.pdf";
 
-    alert("Error downloading receipt");
-  }
-};
+      document.body.appendChild(a);
+
+      a.click();
+
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Error downloading receipt");
+    }
+  };
 
 
-useEffect(() => {
+  useEffect(() => {
 
-  fetchDashboardData();
+    fetchDashboardData();
 
-}, []);
+  }, []);
 
-const fetchDashboardData = async () => {
+  const fetchDashboardData = async () => {
 
-  try {
+    try {
 
-    const user =
-      JSON.parse(localStorage.getItem("user"));
+      const user =
+        JSON.parse(localStorage.getItem("user"));
 
-    const response = await apiFetch(
-      `http://localhost:8089/api/fees/dashboard/${user.schoolId}`
-    );
+      const response = await apiFetch(
+        `http://localhost:8089/api/fees/dashboard/${user.schoolId}`
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    setDashboardData(data);
+      setDashboardData(data);
 
-  } catch (error) {
+    } catch (error) {
 
-    console.error(
-      "Error fetching dashboard data:",
-      error
-    );
-  }
-};
+      console.error(
+        "Error fetching dashboard data:",
+        error
+      );
+    }
+  };
 
-   const labelStyle = {
+  const labelStyle = {
     display: "block",
     marginBottom: 8,
     fontSize: 14,
@@ -398,92 +398,103 @@ const fetchDashboardData = async () => {
   // Simple donut chart using SVG
   const DonutChart = () => {
 
-  const r = 60;
+    const r = 60;
 
-  const cx = 80;
+    const cx = 80;
 
-  const cy = 80;
+    const cy = 80;
 
-  const circ = 2 * Math.PI * r;
+    const circ = 2 * Math.PI * r;
 
-  let offset = 0;
+    let offset = 0;
 
-  const total =
-    classCollectionData.reduce(
-      (sum, item) => sum + item.amount,
-      0
+    const total =
+      classCollectionData.reduce(
+        (sum, item) => sum + item.amount,
+        0
+      );
+
+    return (
+      <svg viewBox="0 0 160 160" width="140" height="140">
+
+        {classCollectionData.map((d, i) => {
+
+          const pct =
+            total > 0
+              ? (d.amount / total) * 100
+              : 0;
+
+          const dash = (pct / 100) * circ;
+
+          const gap = circ - dash;
+
+          const seg = (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill="none"
+              stroke={d.color}
+              strokeWidth="28"
+              strokeDasharray={`${dash} ${gap}`}
+              strokeDashoffset={-offset}
+              style={{
+                transform: "rotate(-90deg)",
+                transformOrigin: "center"
+              }}
+            />
+          );
+
+          offset += dash;
+
+          return seg;
+        })}
+
+        <circle
+          cx={cx}
+          cy={cy}
+          r={46}
+          fill="#fff"
+        />
+
+        <text
+          x={cx}
+          y={cy - 6}
+          textAnchor="middle"
+          fontSize="10"
+          fill="#8898b8"
+          fontFamily="inherit"
+          fontWeight="600"
+        >
+          Total
+        </text>
+
+        <text
+          x={cx}
+          y={cy + 8}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#1a2744"
+          fontFamily="inherit"
+          fontWeight="800"
+        >
+          ₹{total.toLocaleString()}
+        </text>
+      </svg>
     );
+  };
 
-  return (
-    <svg viewBox="0 0 160 160" width="140" height="140">
+  const ITEMS_PER_PAGE = 10;
 
-      {classCollectionData.map((d, i) => {
-
-        const pct =
-          total > 0
-            ? (d.amount / total) * 100
-            : 0;
-
-        const dash = (pct / 100) * circ;
-
-        const gap = circ - dash;
-
-        const seg = (
-          <circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke={d.color}
-            strokeWidth="28"
-            strokeDasharray={`${dash} ${gap}`}
-            strokeDashoffset={-offset}
-            style={{
-              transform: "rotate(-90deg)",
-              transformOrigin: "center"
-            }}
-          />
-        );
-
-        offset += dash;
-
-        return seg;
-      })}
-
-      <circle
-        cx={cx}
-        cy={cy}
-        r={46}
-        fill="#fff"
-      />
-
-      <text
-        x={cx}
-        y={cy - 6}
-        textAnchor="middle"
-        fontSize="10"
-        fill="#8898b8"
-        fontFamily="inherit"
-        fontWeight="600"
-      >
-        Total
-      </text>
-
-      <text
-        x={cx}
-        y={cy + 8}
-        textAnchor="middle"
-        fontSize="11"
-        fill="#1a2744"
-        fontFamily="inherit"
-        fontWeight="800"
-      >
-        ₹{total.toLocaleString()}
-      </text>
-    </svg>
+  const totalPages = Math.ceil(
+    recentPayments.length / ITEMS_PER_PAGE
   );
-};
+
+  const paginatedPayments = recentPayments.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
   return (
     <div>
@@ -531,7 +542,7 @@ const fetchDashboardData = async () => {
               <span key={h} style={{ fontSize: 12.5, fontWeight: 700, color: "#8898b8" }}>{h}</span>
             ))}
           </div>
-          {recentPayments.map((p, i) => (
+          {paginatedPayments.map((p, i) => (
             <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px 80px", padding: "14px 0", borderBottom: i < recentPayments.length - 1 ? "1px solid #f5f6fc" : "none", alignItems: "center", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: "50%", background: p.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: p.textColor, flexShrink: 0 }}>{p.initials}</div>
@@ -543,13 +554,45 @@ const fetchDashboardData = async () => {
               <span style={{ display: "inline-flex", padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: p.status === "Paid" ? "#f0fdf4" : "#fff8f0", color: p.status === "Paid" ? "#22c55e" : "#f4a261", width: "fit-content" }}>{p.status}</span>
             </div>
           ))}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-            <span style={{ fontSize: 13, color: "#8898b8" }}>Showing 5 of 32 payments</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {[1, 2, 3, 4, 5].map(n => (
-                <button key={n} onClick={() => setPage(n)} style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid", borderColor: page === n ? "#4361ee" : "#e8ecf4", background: page === n ? "#4361ee" : "#fff", color: page === n ? "#fff" : "#5a6783", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{n}</button>
-              ))}
-            </div>
+          <span style={{ fontSize: 13, color: "#8898b8" }}>
+            Showing {(page - 1) * ITEMS_PER_PAGE + 1}
+            -
+            {Math.min(
+              page * ITEMS_PER_PAGE,
+              recentPayments.length
+            )}
+            of {recentPayments.length} payments
+          </span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {[...Array(totalPages)].map((_, index) => {
+              const n = index + 1;
+
+              return (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 8,
+                    border: "1.5px solid",
+                    borderColor:
+                      page === n ? "#4361ee" : "#e8ecf4",
+                    background:
+                      page === n ? "#4361ee" : "#fff",
+                    color:
+                      page === n ? "#fff" : "#5a6783",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit"
+                  }}
+                >
+                  {n}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -576,455 +619,455 @@ const fetchDashboardData = async () => {
 
       {/* Collect Fee Modal */}
       {/* Collect Fee Modal */}
-{showCollect && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(15,23,42,0.55)",
-      zIndex: 1000,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 20,
-      overflowY: "auto"
-    }}
-    onClick={() => setShowCollect(false)}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        width: "100%",
-        maxWidth: 1180,
-        background: "#fff",
-        borderRadius: 28,
-        padding: 30,
-        boxSizing: "border-box",
-        maxHeight: "95vh",
-        overflowY: "auto"
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 28
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 28,
-              fontWeight: 800,
-              color: "#0f172a"
-            }}
-          >
-            Collect Fee
-          </h2>
-
-          <p
-            style={{
-              marginTop: 6,
-              color: "#64748b",
-              fontSize: 14
-            }}
-          >
-            Record student fee payment and generate receipt
-          </p>
-        </div>
-
-        <button
+      {showCollect && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15,23,42,0.55)",
+            zIndex: 1000,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+            overflowY: "auto"
+          }}
           onClick={() => setShowCollect(false)}
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-            background: "#fff",
-            cursor: "pointer",
-            fontSize: 20
-          }}
         >
-          ×
-        </button>
-      </div>
-
-      {/* Student Information */}
-      
-<div
-  style={{
-    border: "1px solid #e2e8f0",
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24
-  }}
->
-  <h3
-    style={{
-      margin: "0 0 22px",
-      fontSize: 18,
-      fontWeight: 700,
-      color: "#0f172a"
-    }}
-  >
-    Student Information
-  </h3>
-
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 20
-    }}
-  >
-    {/* Class */}
-    {/* Class */}
-<div>
-  <label style={labelStyle}>Class *</label>
-
-  <select
-    value={selectedClass}
-    onChange={(e) => {
-      setSelectedClass(e.target.value);
-      fetchStudents(e.target.value);
-    }}
-    style={{
-      ...inputStyle,
-      border: "none",
-      outline: "none",
-      fontSize: 13,
-      fontWeight: 600,
-      color: "#1a2744",
-      background: "#fff",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      padding: "0 16px",
-      borderRadius: 14,
-      boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
-    }}
-  >
-    <option value="">Select Class</option>
-
-    {[
-      "Nursery",
-      "LKG",
-      "UKG",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "11",
-      "12"
-    ].map((c) => (
-      <option key={c} value={c}>
-        {["Nursery", "LKG", "UKG"].includes(c)
-          ? c
-          : `Class ${c}`}
-      </option>
-    ))}
-  </select>
-</div>
-
-    {/* Student */}
-    <div>
-      <label style={labelStyle}>Student *</label>
-
-    <select
-  style={inputStyle}
-  value={selectedStudent}
-  onChange={(e) => {
-    const studentId = e.target.value;
-
-    setSelectedStudent(studentId);
-
-    const student = students.find(
-      (s) => s.id == studentId
-    );
-
-    if (student) {
-  setFatherName(student.parentName || "");
-  setMobileNumber(student.parentMobile || "");
-
-  fetchFeeDetails(studentId);
-}
-  }}
->
-  <option value="">Select Student</option>
-
-  {students.map((student) => (
-    <option key={student.id} value={student.id}>
-      {student.fullName}
-    </option>
-  ))}
-</select>
-    </div>
-
-    {/* Father Name */}
-    <div>
-      <label style={labelStyle}>Father Name</label>
-
-      <input
-  readOnly
-  value={fatherName}
-  style={readonlyStyle}
-/>
-    </div>
-
-    {/* Mobile */}
-    <div>
-      <label style={labelStyle}>Mobile Number</label>
-
-      <input
-  readOnly
-  value={mobileNumber}
-  style={readonlyStyle}
-/>
-    </div>
-  </div>
-</div>
-
-      {/* Fee Details */}
-      <div
-        style={{
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 24,
-          marginBottom: 24
-        }}
-      >
-        <h3
-          style={{
-            margin: "0 0 22px",
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#0f172a"
-          }}
-        >
-          Fee Details
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20
-          }}
-        >
-          <div>
-            <label style={labelStyle}>Fee Type *</label>
-            <select style={inputStyle}>
-              <option>Select Fee Type</option>
-              <option>Tuition Fee</option>
-              <option>Transport Fee</option>
-              <option>Exam Fee</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Payment Date *</label>
-            <input
-  type="date"
-  value={paymentDate}
-  onChange={(e) =>
-    setPaymentDate(e.target.value)
-  }
-  style={inputStyle}
-/>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Total Amount</label>
-            <input
-              value={`₹ ${totalAmount}`}
-              readOnly
-              style={readonlyStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Paid Amount *</label>
-            <input
-              value={`₹ ${paidAmount}`}
-              readOnly
-              style={readonlyStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Due Amount</label>
-            <input
-              value={`₹ ${dueAmount}`}
-              readOnly
-              style={readonlyStyle}
-            />
-          </div>
-
-          {/* Enter Amount */}
-<div>
-  <label style={labelStyle}>Enter Amount *</label>
-
-  <input
-    type="number"
-    placeholder="Enter amount"
-    value={newPaymentAmount}
-    onChange={(e) =>
-      setNewPaymentAmount(e.target.value)
-    }
-    style={inputStyle}
-  />
-</div>
-        </div>
-      </div>
-
-      {/* Payment Details */}
-      <div
-        style={{
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 24,
-          marginBottom: 24
-        }}
-      >
-        <h3
-          style={{
-            margin: "0 0 22px",
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#0f172a"
-          }}
-        >
-          Payment Details
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20
-          }}
-        >
-          <div>
-            <label style={labelStyle}>Payment Method *</label>
-            <select
-  style={inputStyle}
-  value={paymentMode}
-  onChange={(e) =>
-    setPaymentMode(e.target.value)
-  }
->
-              <option>Select Method</option>
-              <option value="CASH">Cash</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Receipt Number</label>
-            <input
-  value={receiptNumber}
-  readOnly
-  style={readonlyStyle}
-/>
-          </div>
-
-          <div style={{ gridColumn: "1 / span 2" }}>
-            <label style={labelStyle}>Remarks</label>
-            <textarea
-  value={remarks}
-  onChange={(e) =>
-    setRemarks(e.target.value)
-  }
-              placeholder="Additional notes..."
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 1180,
+              background: "#fff",
+              borderRadius: 28,
+              padding: 30,
+              boxSizing: "border-box",
+              maxHeight: "95vh",
+              overflowY: "auto"
+            }}
+          >
+            {/* Header */}
+            <div
               style={{
-                ...inputStyle,
-                height: 110,
-                paddingTop: 14,
-                resize: "none"
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 28
               }}
-            />
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: "#0f172a"
+                  }}
+                >
+                  Collect Fee
+                </h2>
+
+                <p
+                  style={{
+                    marginTop: 6,
+                    color: "#64748b",
+                    fontSize: 14
+                  }}
+                >
+                  Record student fee payment and generate receipt
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowCollect(false)}
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  cursor: "pointer",
+                  fontSize: 20
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Student Information */}
+
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 20,
+                padding: 24,
+                marginBottom: 24
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 22px",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0f172a"
+                }}
+              >
+                Student Information
+              </h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20
+                }}
+              >
+                {/* Class */}
+                {/* Class */}
+                <div>
+                  <label style={labelStyle}>Class *</label>
+
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => {
+                      setSelectedClass(e.target.value);
+                      fetchStudents(e.target.value);
+                    }}
+                    style={{
+                      ...inputStyle,
+                      border: "none",
+                      outline: "none",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#1a2744",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      padding: "0 16px",
+                      borderRadius: 14,
+                      boxShadow: "0 2px 8px rgba(67,97,238,0.07)"
+                    }}
+                  >
+                    <option value="">Select Class</option>
+
+                    {[
+                      "Nursery",
+                      "LKG",
+                      "UKG",
+                      "1",
+                      "2",
+                      "3",
+                      "4",
+                      "5",
+                      "6",
+                      "7",
+                      "8",
+                      "9",
+                      "10",
+                      "11",
+                      "12"
+                    ].map((c) => (
+                      <option key={c} value={c}>
+                        {["Nursery", "LKG", "UKG"].includes(c)
+                          ? c
+                          : `Class ${c}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Student */}
+                <div>
+                  <label style={labelStyle}>Student *</label>
+
+                  <select
+                    style={inputStyle}
+                    value={selectedStudent}
+                    onChange={(e) => {
+                      const studentId = e.target.value;
+
+                      setSelectedStudent(studentId);
+
+                      const student = students.find(
+                        (s) => s.id == studentId
+                      );
+
+                      if (student) {
+                        setFatherName(student.parentName || "");
+                        setMobileNumber(student.parentMobile || "");
+
+                        fetchFeeDetails(studentId);
+                      }
+                    }}
+                  >
+                    <option value="">Select Student</option>
+
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.fullName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Father Name */}
+                <div>
+                  <label style={labelStyle}>Father Name</label>
+
+                  <input
+                    readOnly
+                    value={fatherName}
+                    style={readonlyStyle}
+                  />
+                </div>
+
+                {/* Mobile */}
+                <div>
+                  <label style={labelStyle}>Mobile Number</label>
+
+                  <input
+                    readOnly
+                    value={mobileNumber}
+                    style={readonlyStyle}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Fee Details */}
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 20,
+                padding: 24,
+                marginBottom: 24
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 22px",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0f172a"
+                }}
+              >
+                Fee Details
+              </h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Fee Type *</label>
+                  <select style={inputStyle}>
+                    <option>Select Fee Type</option>
+                    <option>Tuition Fee</option>
+                    <option>Transport Fee</option>
+                    <option>Exam Fee</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Payment Date *</label>
+                  <input
+                    type="date"
+                    value={paymentDate}
+                    onChange={(e) =>
+                      setPaymentDate(e.target.value)
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Total Amount</label>
+                  <input
+                    value={`₹ ${totalAmount}`}
+                    readOnly
+                    style={readonlyStyle}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Paid Amount *</label>
+                  <input
+                    value={`₹ ${paidAmount}`}
+                    readOnly
+                    style={readonlyStyle}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Due Amount</label>
+                  <input
+                    value={`₹ ${dueAmount}`}
+                    readOnly
+                    style={readonlyStyle}
+                  />
+                </div>
+
+                {/* Enter Amount */}
+                <div>
+                  <label style={labelStyle}>Enter Amount *</label>
+
+                  <input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={newPaymentAmount}
+                    onChange={(e) =>
+                      setNewPaymentAmount(e.target.value)
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Details */}
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 20,
+                padding: 24,
+                marginBottom: 24
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 22px",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0f172a"
+                }}
+              >
+                Payment Details
+              </h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Payment Method *</label>
+                  <select
+                    style={inputStyle}
+                    value={paymentMode}
+                    onChange={(e) =>
+                      setPaymentMode(e.target.value)
+                    }
+                  >
+                    <option>Select Method</option>
+                    <option value="CASH">Cash</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Receipt Number</label>
+                  <input
+                    value={receiptNumber}
+                    readOnly
+                    style={readonlyStyle}
+                  />
+                </div>
+
+                <div style={{ gridColumn: "1 / span 2" }}>
+                  <label style={labelStyle}>Remarks</label>
+                  <textarea
+                    value={remarks}
+                    onChange={(e) =>
+                      setRemarks(e.target.value)
+                    }
+                    placeholder="Additional notes..."
+                    style={{
+                      ...inputStyle,
+                      height: 110,
+                      paddingTop: 14,
+                      resize: "none"
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
+
+            {/* Buttons */}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 14,
+                flexWrap: "wrap"
+              }}
+            >
+
+              {/* Download Receipt Button */}
+              {receiptNumber && (
+                <button
+                  onClick={handleDownloadReceipt}
+                  style={{
+                    padding: "14px 26px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "#16a34a",
+                    color: "#fff",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow:
+                      "0 10px 20px rgba(22,163,74,0.25)"
+                  }}
+                >
+                  Download Receipt
+                </button>
+              )}
+
+              {/* Cancel Button */}
+              <button
+                onClick={() => setShowCollect(false)}
+                style={{
+                  padding: "14px 26px",
+                  borderRadius: 12,
+                  border: "1px solid #cbd5e1",
+                  background: "#fff",
+                  color: "#334155",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                Cancel
+              </button>
+
+              {/* Collect Fee Button */}
+              <button
+                onClick={handleCollectFee}
+                style={{
+                  padding: "14px 26px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#2563eb",
+                  color: "#fff",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow:
+                    "0 10px 20px rgba(37,99,235,0.25)"
+                }}
+              >
+                Collect Fee
+              </button>
+
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Buttons */}
-      
-{/* Buttons */}
-
-<div
-  style={{
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 14,
-    flexWrap: "wrap"
-  }}
->
-
-  {/* Download Receipt Button */}
-  {receiptNumber && (
-    <button
-      onClick={handleDownloadReceipt}
-      style={{
-        padding: "14px 26px",
-        borderRadius: 12,
-        border: "none",
-        background: "#16a34a",
-        color: "#fff",
-        fontWeight: 700,
-        cursor: "pointer",
-        boxShadow:
-          "0 10px 20px rgba(22,163,74,0.25)"
-      }}
-    >
-      Download Receipt
-    </button>
-  )}
-
-  {/* Cancel Button */}
-  <button
-    onClick={() => setShowCollect(false)}
-    style={{
-      padding: "14px 26px",
-      borderRadius: 12,
-      border: "1px solid #cbd5e1",
-      background: "#fff",
-      color: "#334155",
-      fontWeight: 700,
-      cursor: "pointer"
-    }}
-  >
-    Cancel
-  </button>
-
-  {/* Collect Fee Button */}
-  <button
-    onClick={handleCollectFee}
-    style={{
-      padding: "14px 26px",
-      borderRadius: 12,
-      border: "none",
-      background: "#2563eb",
-      color: "#fff",
-      fontWeight: 700,
-      cursor: "pointer",
-      boxShadow:
-        "0 10px 20px rgba(37,99,235,0.25)"
-    }}
-  >
-    Collect Fee
-  </button>
-
-</div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

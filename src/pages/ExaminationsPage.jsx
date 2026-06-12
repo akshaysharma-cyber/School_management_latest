@@ -19,7 +19,14 @@ const STUDENTS = [
   { id: "GPS005", name: "Arjun Verma", roll: "05", math: 76, english: 72, science: 68 },
 ];
 
+const ACADEMIC_YEARS = [
+  "2026-2027",
+  "2027-2028",
+  "2028-2029",
+  "2029-2030"
+];
 
+const CURRENT_ACADEMIC_YEAR = ACADEMIC_YEARS[0];
 
 export default function ExaminationsPage({ onNavigate }) {
   const [recentResults, setRecentResults] = useState([]);
@@ -93,10 +100,12 @@ export default function ExaminationsPage({ onNavigate }) {
           localStorage.getItem("user")
         );
 
-      const res =
-        await apiFetch(
-          `http://localhost:8089/api/exams/recent-results?schoolId=${user.schoolId}`
-        );
+      const academicYear =
+  localStorage.getItem("academicYear");
+
+const res = await apiFetch(
+  `http://localhost:8089/api/exams/recent-results?schoolId=${user.schoolId}&academicYear=${CURRENT_ACADEMIC_YEAR}`
+);
 
       const data =
         await res.json();
@@ -262,7 +271,7 @@ export default function ExaminationsPage({ onNavigate }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid #f0f2fb" }}>
-                {["Exam Name", "Class", "Students", "Average %", "Topper", "Published On", "SMS Status", "Action"].map(h => (
+                {["Exam Name", "Class", "Students", "Average %", "Topper", "Published On"].map(h => (
                   <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 12.5, fontWeight: 700, color: "#8898b8", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -288,7 +297,7 @@ export default function ExaminationsPage({ onNavigate }) {
                           padding: "14px"
                         }}
                       >
-                        {r.examName}
+                        {r.examType}
                       </td>
 
                       <td
@@ -364,79 +373,6 @@ export default function ExaminationsPage({ onNavigate }) {
                       >
 
                         {r.publishedOn}
-
-                      </td>
-
-                      <td
-                        style={{
-                          padding: "14px"
-                        }}
-                      >
-
-                        <span
-                          style={{
-                            background:
-                              r.smsSent
-                                ?
-                                "#e8faf9"
-                                :
-                                "#f5f6fc",
-
-                            color:
-                              r.smsSent
-                                ?
-                                "#2ec4b6"
-                                :
-                                "#8898b8",
-
-                            padding:
-                              "4px 10px",
-
-                            borderRadius:
-                              8
-                          }}
-                        >
-
-                          {
-                            r.smsSent
-                              ?
-                              "SMS Sent"
-                              :
-                              "Not Sent"
-                          }
-
-                        </span>
-
-                      </td>
-
-                      <td
-                        style={{
-                          padding: "14px"
-                        }}
-                      >
-
-                        <button
-                          onClick={() =>
-                            onNavigate(
-                              "results"
-                            )
-                          }
-                          style={{
-                            background:
-                              "#f0f4ff",
-                            border: "none",
-                            padding:
-                              "6px 14px",
-                            borderRadius:
-                              8,
-                            cursor:
-                              "pointer"
-                          }}
-                        >
-
-                          View
-
-                        </button>
 
                       </td>
 
