@@ -265,7 +265,6 @@ const res = await apiFetch(
       <div style={{ background: "#fff", borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: "0 2px 12px rgba(67,97,238,0.06)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a2744" }}>Recent Results</h3>
-          <button onClick={() => onNavigate("results")} style={{ background: "none", border: "none", color: "#4361ee", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit" }}>View All Results</button>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

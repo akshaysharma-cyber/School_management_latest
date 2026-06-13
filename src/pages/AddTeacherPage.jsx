@@ -524,10 +524,7 @@ export default function AddTeacherPage({ onBack }) {
           </div>
           {errors.password && <p style={errStyle}>{errors.password}</p>}
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-          <input type="checkbox" checked={form.sendCredentials} onChange={e => update("sendCredentials", e.target.checked)} style={{ width: 16, height: 16, accentColor: "#4361ee" }} />
-          <span style={{ fontSize: 13.5, color: "#374162", fontWeight: 500 }}>Send login credentials to teacher's email</span>
-        </label>
+      
       </div>
 
       <div

@@ -424,10 +424,7 @@ export default function AttendancePage() {
 
 
         </div>
-        <button style={{ marginLeft: "auto", background: "#4361ee", color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="18" y1="20" x2="18" y2="10" stroke="#fff" strokeWidth="2" /><line x1="12" y1="20" x2="12" y2="4" stroke="#fff" strokeWidth="2" /><line x1="6" y1="20" x2="6" y2="14" stroke="#fff" strokeWidth="2" /></svg>
-          View Report
-        </button>
+       
       </div>
 
       {/* Stats */}
@@ -454,7 +451,7 @@ export default function AttendancePage() {
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "18px 24px", borderBottom: "1px solid #f5f6fc", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f9fc", borderRadius: 10, padding: "9px 14px", flex: 1, minWidth: 200 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#b0bbc9" strokeWidth="1.8" /><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="#b0bbc9" strokeWidth="1.8" /></svg>
-            <input style={{ border: "none", outline: "none", background: "none", fontSize: 13.5, color: "#1a2744", fontFamily: "inherit", width: "100%" }} placeholder="Search student by name or roll no..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input style={{ border: "none", outline: "none", background: "none", fontSize: 13.5, color: "#1a2744", fontFamily: "inherit", width: "100%" }} placeholder="Search student by name" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <select value={filter} onChange={e => setFilter(e.target.value)} style={{ border: "1.5px solid #e8ecf4", borderRadius: 10, padding: "9px 14px", fontSize: 13.5, color: "#1a2744", background: "#fff", fontFamily: "inherit", cursor: "pointer", outline: "none" }}>
             <option value="all">All Students</option>
