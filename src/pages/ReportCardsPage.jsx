@@ -434,13 +434,13 @@ export default function ReportCardsPage({ onBack }) {
 
                                 <h2
                                     style={{
-                                        color: "#059669",
+                                        color: "#334155",
                                         fontSize: "24px",
                                         fontWeight: "700",
                                         marginBottom: "12px"
                                     }}
                                 >
-                                    {report.studentName}
+                                  Name : {report.studentName}
                                 </h2>
 
                                 <p
