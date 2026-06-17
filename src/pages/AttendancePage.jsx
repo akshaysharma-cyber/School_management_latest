@@ -82,16 +82,20 @@ export default function AttendancePage() {
 
       console.log("DATE ATTENDANCE =", data);
 
-      const attendanceMap = {};
+     const attendanceMap = {};
 
-      data.forEach((item) => {
+// Default everyone present
+students.forEach((s) => {
+  attendanceMap[s.id] = true;
+});
 
-        attendanceMap[item.studentId] =
-          item.status === "PRESENT";
+// Override absentees from DB
+data.forEach((item) => {
+  attendanceMap[item.studentId] =
+    item.status === "PRESENT";
+});
 
-      });
-
-      setAttendance(attendanceMap);
+setAttendance(attendanceMap);
 
     } catch (error) {
 
@@ -101,6 +105,21 @@ export default function AttendancePage() {
       );
     }
   };
+
+  useEffect(() => {
+  if (students.length > 0) {
+
+    const defaultAttendance = {};
+
+    students.forEach((s) => {
+      defaultAttendance[s.id] = true;
+    });
+
+    setAttendance(defaultAttendance);
+
+    fetchAttendanceByDate();
+  }
+}, [students]);
 
   const handleSave = async () => {
 
