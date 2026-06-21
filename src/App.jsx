@@ -1,31 +1,68 @@
 import { useState } from "react";
-
+import { jwtDecode } from "jwt-decode";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import Dashboard from "./pages/Dashboard";
 
 export default function App() {
 
+  const isTokenValid = () => {
+
+  const token =
+    localStorage.getItem("accessToken");
+
+  if (!token) return false;
+
+  try {
+
+    const decoded =
+      jwtDecode(token);
+
+    return (
+      decoded.exp >
+      Date.now() / 1000
+    );
+
+  } catch {
+
+    return false;
+  }
+};
+
   // RESTORE USER FROM LOCAL STORAGE
   const [user, setUser] = useState(() => {
 
-    const savedUser =
-      localStorage.getItem("user");
+  if (!isTokenValid()) {
 
-    return savedUser
-      ? JSON.parse(savedUser)
-      : null;
-  });
+    localStorage.clear();
+
+    return null;
+  }
+
+  const savedUser =
+    localStorage.getItem("user");
+
+  return savedUser
+    ? JSON.parse(savedUser)
+    : null;
+});
 
   const [page, setPage] = useState(() => {
 
-    const savedUser =
-      localStorage.getItem("user");
+  if (!isTokenValid()) {
 
-    return savedUser
-      ? "dashboard"
-      : "login";
-  });
+    localStorage.clear();
+
+    return "login";
+  }
+
+  const savedUser =
+    localStorage.getItem("user");
+
+  return savedUser
+    ? "dashboard"
+    : "login";
+});
 
   const handleLogin = (userData) => {
 
@@ -44,7 +81,9 @@ export default function App() {
 
   localStorage.removeItem("user");
 
-  localStorage.removeItem("token");
+  localStorage.removeItem("accessToken");
+
+  localStorage.removeItem("refreshToken");
 
   localStorage.removeItem("activePage");
 
@@ -73,6 +112,8 @@ export default function App() {
       />
     );
   }
+
+  
 
   return (
     <LoginPage
