@@ -134,7 +134,7 @@ export default function SignupPage({ onNavigate, onSignup }) {
 
     // ✅ API CALL
     const response = await apiFetch(
-      "${API_URL}/api/auth/signup",
+      `${API_URL}/api/auth/signup`,
       {
         method: "POST",
         headers: {
