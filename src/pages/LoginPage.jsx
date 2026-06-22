@@ -2,6 +2,7 @@ import { useState } from "react";
 import InputField from "../components/InputField";
 import { validateMobile, validatePassword } from "../utils/validation";
 import { apiFetch } from "../utils/apiFetch";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage({ onNavigate, onLogin, registeredUsers }) {
   const [mobile, setMobile] = useState("");
@@ -30,8 +31,8 @@ export default function LoginPage({ onNavigate, onLogin, registeredUsers }) {
   setLoading(true);
 
   try {
-    const response = await fetch(
-      "http://localhost:8089/api/auth/login",
+    const response = await apiFetch(
+      `${API_URL}/api/auth/login`,
       {
         method: "POST",
         headers: {
