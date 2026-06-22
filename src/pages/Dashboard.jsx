@@ -10,6 +10,7 @@ import MarksEntryPage from "./MarksEntryPage";
 import ResultsPage from "./ResultsPage";
 import ReportCardsPage from "./ReportCardsPage";
 import { apiFetch } from "../utils/apiFetch";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const NAV_ITEMS = [
   { id:"dashboard", label:"Dashboard", icon:<DashboardIcon/> },
@@ -100,7 +101,7 @@ user?.schoolId;
 
 const response =
 await apiFetch(
-`http://localhost:8089/api/dashboard/summary?schoolId=${schoolId}`
+`${API_URL}/api/dashboard/summary?schoolId=${schoolId}`
 );
 
 if (!response.ok) {

@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
 import { apiFetch } from "../utils/apiFetch";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ReportCardsPage({ onBack }) {
 
@@ -58,7 +59,7 @@ export default function ReportCardsPage({ onBack }) {
                     user?.schoolId;
 
                 const res = await apiFetch(
-                    `http://localhost:8089/api/students/by-class/${schoolId}/${selectedClass}`
+                    `${API_URL}/api/students/by-class/${schoolId}/${selectedClass}`
                 );
 
                 const data =
@@ -105,7 +106,7 @@ export default function ReportCardsPage({ onBack }) {
                 JSON.parse(localStorage.getItem("user"));
 
             const res = await apiFetch(
-                `http://localhost:8089/api/report-card/student?schoolId=${user.schoolId}&studentId=${studentId}&academicYear=${academicYear}&className=${selectedClass}`
+                `${API_URL}/api/report-card/student?schoolId=${user.schoolId}&studentId=${studentId}&academicYear=${academicYear}&className=${selectedClass}`
             );
 
             if (!res.ok) {

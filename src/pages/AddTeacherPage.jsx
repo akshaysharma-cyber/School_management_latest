@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
 import { validateMobile } from "../utils/validation";
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function AddTeacherPage({ onBack }) {
   const [form, setForm] = useState({
     fullName: "", email: "", phone: "", dob: "", gender: "", address: "",
@@ -72,7 +72,7 @@ export default function AddTeacherPage({ onBack }) {
       };
 
       const response = await apiFetch(
-        "http://localhost:8089/api/teachers/add",
+        `${API_URL}/api/teachers/add`,
         {
           method: "POST",
           headers: {
@@ -114,7 +114,7 @@ export default function AddTeacherPage({ onBack }) {
       const user = JSON.parse(localStorage.getItem("user"));
 
       const response = await apiFetch(
-        `http://localhost:8089/api/teachers/all?schoolId=${user.schoolId}`
+        `${API_URL}/api/teachers/all?schoolId=${user.schoolId}`
       );
 
       const data = await response.json();
@@ -148,7 +148,7 @@ export default function AddTeacherPage({ onBack }) {
     try {
 
       await apiFetch(
-        `http://localhost:8089/api/teachers/delete/${id}`,
+        `${API_URL}/api/teachers/delete/${id}`,
         {
           method: "DELETE"
         }
@@ -168,7 +168,7 @@ export default function AddTeacherPage({ onBack }) {
     try {
 
       await apiFetch(
-        `http://localhost:8089/api/teachers/update/${selectedTeacher.id}`,
+        `${API_URL}/api/teachers/update/${selectedTeacher.id}`,
         {
           method: "PUT",
           headers: {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 const CLASSES = ["Nursery",
   "LKG",
   "UKG",
@@ -131,7 +131,7 @@ const lowest =
         const schoolId = user?.schoolId;
 
         const res = await apiFetch(
-          `http://localhost:8089/api/exams/subjects?schoolId=${schoolId}&academicYear=${selectedAcademicYear}&examType=${encodeURIComponent(selectedExamType)}&className=${selectedClass}`
+          `${API_URL}/api/exams/subjects?schoolId=${schoolId}&academicYear=${selectedAcademicYear}&examType=${encodeURIComponent(selectedExamType)}&className=${selectedClass}`
         );
 
         if (!res.ok) {
@@ -190,7 +190,7 @@ const lowest =
         console.log("schoolId =", schoolId);
 
         const res = await apiFetch(
-          `http://localhost:8089/api/students/class/${encodeURIComponent(selectedClass)}?schoolId=${schoolId}`
+          `${API_URL}/api/students/class/${encodeURIComponent(selectedClass)}?schoolId=${schoolId}`
         );
 
         console.log("status =", res.status);
@@ -240,7 +240,7 @@ const lowest =
         );
 
         const res = await apiFetch(
-          `http://localhost:8089/api/exams/types?schoolId=${user.schoolId}&academicYear=${selectedAcademicYear}`
+          `${API_URL}/api/exams/types?schoolId=${user.schoolId}&academicYear=${selectedAcademicYear}`
         );
 
         if (!res.ok) {
@@ -293,7 +293,7 @@ const lowest =
       console.log("ACTIVE SUBJECT =", activeSub);
       console.log("PAYLOAD =", payload);
       const res = await apiFetch(
-        "http://localhost:8089/api/marks/save",
+        `${API_URL}/api/marks/save`,
         {
           method: "POST",
           headers: {
@@ -341,7 +341,7 @@ const lowest =
       const activeSub = subjects[activeSubject];
 
       const res = await apiFetch(
-  `http://localhost:8089/api/marks/saved?schoolId=${user.schoolId}&examId=${activeSub.examId}&subjectId=${activeSub.subjectId}&className=${selectedClass}`
+  `${API_URL}/api/marks/saved?schoolId=${user.schoolId}&examId=${activeSub.examId}&subjectId=${activeSub.subjectId}&className=${selectedClass}`
 );
 
       if (!res.ok) return;

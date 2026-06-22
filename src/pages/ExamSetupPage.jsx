@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { apiFetch } from "../utils/apiFetch";
 import {
   validateExamName,
   validateAcademicYear,
@@ -9,6 +10,7 @@ import {
   validatePassingPercentage,
   validateExamDates,
 } from "../utils/validation";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const EXAM_TYPES = [
   "Unit Test-1",
@@ -92,8 +94,8 @@ export default function ExamSetupPage({ onBack }) {
 
   const fetchSubjectsByClass = async (className) => {
     try {
-      const res = await axios.get(
-        "http://localhost:8089/api/subjects-by-class",
+      const res = await axios.apiFetch(
+        `${API_URL}/api/subjects-by-class`,
         {
           params: {
             schoolId: user.schoolId,
@@ -229,7 +231,7 @@ export default function ExamSetupPage({ onBack }) {
       console.log("FINAL PAYLOAD", payload);
 
       const res = await axios.post(
-        "http://localhost:8089/api/exams/create",
+        `${API_URL}/api/exams/create`,
         payload,
         {
           headers: {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
 import { validateMobile } from "../utils/validation";
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AddStudentPage({ onBack }) {
   const loggedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -122,7 +122,7 @@ if (mobileError) {
 
         // UPDATE
         response = await apiFetch(
-          `http://localhost:8089/api/students/update/${form.id}`,
+          `${API_URL}/api/students/update/${form.id}`,
           {
             method: "PUT",
 
@@ -159,7 +159,7 @@ if (mobileError) {
         }
 
         response = await apiFetch(
-          "http://localhost:8089/api/students/add",
+          `${API_URL}/api/students/add`,
           {
             method: "POST",
             body: formData
@@ -208,7 +208,7 @@ if (mobileError) {
     try {
 
       const response = await apiFetch(
-        `http://localhost:8089/api/students/all?schoolId=${schoolId}`
+        `${API_URL}/api/students/all?schoolId=${schoolId}`
       );
 
       const data = await response.json();
@@ -247,7 +247,7 @@ if (mobileError) {
     try {
 
       const response = await apiFetch(
-        `http://localhost:8089/api/students/delete/${id}`,
+        `${API_URL}/api/students/delete/${id}`,
         {
           method: "DELETE"
         }

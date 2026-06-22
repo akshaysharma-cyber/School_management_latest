@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 
@@ -52,7 +52,7 @@ export default function FeeCollectionPage({ onNavigate }) {
         JSON.parse(localStorage.getItem("user"));
 
       const response = await apiFetch(
-        `http://localhost:8089/api/fees/class-collection/${user.schoolId}`
+        `${API_URL}/api/fees/class-collection/${user.schoolId}`
       );
 
       const data = await response.json();
@@ -96,7 +96,7 @@ export default function FeeCollectionPage({ onNavigate }) {
         JSON.parse(localStorage.getItem("user"));
 
       const response = await apiFetch(
-        `http://localhost:8089/api/fees/recent-payments/${user.schoolId}`
+        `${API_URL}/api/fees/recent-payments/${user.schoolId}`
       );
 
       const data = await response.json();
@@ -118,7 +118,7 @@ export default function FeeCollectionPage({ onNavigate }) {
       const user = JSON.parse(localStorage.getItem("user"));
 
       const response = await apiFetch(
-        `http://localhost:8089/api/students/by-class/${user.schoolId}/${className}`
+        `${API_URL}/api/students/by-class/${user.schoolId}/${className}`
       );
 
       const data = await response.json();
@@ -146,7 +146,7 @@ export default function FeeCollectionPage({ onNavigate }) {
       // =========================
 
       const response = await apiFetch(
-        `http://localhost:8089/api/fees/student/${user.schoolId}/${studentId}`
+        `${API_URL}/api/fees/student/${user.schoolId}/${studentId}`
       );
 
       const data = await response.json();
@@ -183,7 +183,7 @@ export default function FeeCollectionPage({ onNavigate }) {
 
       const historyResponse =
         await apiFetch(
-          `http://localhost:8089/api/fees/payment-history/${user.schoolId}/${data.id}`
+          `${API_URL}/api/fees/payment-history/${user.schoolId}/${data.id}`
         );
 
 
@@ -251,7 +251,7 @@ export default function FeeCollectionPage({ onNavigate }) {
       console.log(payload);
 
       const response = await apiFetch(
-        "http://localhost:8089/api/fees/collect",
+        `${API_URL}/api/fees/collect`,
         {
           method: "POST",
 
@@ -298,7 +298,7 @@ export default function FeeCollectionPage({ onNavigate }) {
         JSON.parse(localStorage.getItem("user"));
 
       const response = await fetch(
-        `http://localhost:8089/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
+        `${API_URL}/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
         {
           method: "GET"
         }
@@ -353,7 +353,7 @@ export default function FeeCollectionPage({ onNavigate }) {
         JSON.parse(localStorage.getItem("user"));
 
       const response = await apiFetch(
-        `http://localhost:8089/api/fees/dashboard/${user.schoolId}`
+        `${API_URL}/api/fees/dashboard/${user.schoolId}`
       );
 
       const data = await response.json();

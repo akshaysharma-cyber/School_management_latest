@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../utils/apiFetch";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const PASSING_PCT = 33;
@@ -40,7 +40,7 @@ export default function ResultsPage({ onBack }) {
         const user = JSON.parse(localStorage.getItem("user"));
 
         const res = await apiFetch(
-          `http://localhost:8089/api/results/full-result?schoolId=${user.schoolId}&academicYear=${encodeURIComponent(selectedAcademicYear)}&examType=${encodeURIComponent(selectedExamType)}&className=${selectedClass}`
+          `${API_URL}/api/results/full-result?schoolId=${user.schoolId}&academicYear=${encodeURIComponent(selectedAcademicYear)}&examType=${encodeURIComponent(selectedExamType)}&className=${selectedClass}`
         );
 
         const data = await res.json();

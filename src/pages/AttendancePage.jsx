@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiFetch } from "../utils/apiFetch";
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function AttendancePage() {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
@@ -30,7 +30,7 @@ export default function AttendancePage() {
 
   const fetchStudents = async (schid = user.schoolId, cls = className) => {
     try {
-      const url = `http://localhost:8089/api/attendance/students?schoolId=${schid}&className=${cls}`;
+      const url = `${API_URL}/api/attendance/students?schoolId=${schid}&className=${cls}`;
 
       console.log("FETCH URL:", url);
 
@@ -74,7 +74,7 @@ export default function AttendancePage() {
 
       const response = await apiFetch(
 
-        `http://localhost:8089/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&date=${attendanceDate}`
+        `${API_URL}/api/attendance/by-date?schoolId=${user.schoolId}&className=${className}&date=${attendanceDate}`
 
       );
 
@@ -175,7 +175,7 @@ setAttendance(attendanceMap);
 
       const response = await apiFetch(
 
-        "http://localhost:8089/api/attendance/mark",
+        `${API_URL}/api/attendance/mark`,
 
         {
           method: "POST",

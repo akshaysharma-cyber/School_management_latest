@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../utils/apiFetch";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_ITEMS = [
   { id: 1, name: "Tuition Fee", amount: "2500" },
 ];
@@ -52,7 +52,7 @@ export default function FeeStructurePage({ onBack }) {
     console.log("FEE PAYLOAD:", payload);
 
     const response = await apiFetch(
-      "http://localhost:8089/api/fees/structure",
+      `${API_URL}/api/fees/structure`,
       {
         method: "POST",
 
@@ -136,7 +136,7 @@ export default function FeeStructurePage({ onBack }) {
       );
 
       const response = await apiFetch(
-        "http://localhost:8089/api/fees/assign-class",
+        `${API_URL}/api/fees/assign-class`,
         {
 
           method: "POST",
