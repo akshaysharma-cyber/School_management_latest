@@ -94,7 +94,7 @@ export default function ExamSetupPage({ onBack }) {
 
   const fetchSubjectsByClass = async (className) => {
     try {
-      const res = await axios.apiFetch(
+      const res = await apiFetch(
         `${API_URL}/api/subjects-by-class`,
         {
           params: {
@@ -230,7 +230,7 @@ export default function ExamSetupPage({ onBack }) {
 
       console.log("FINAL PAYLOAD", payload);
 
-      const res = await axios.post(
+      const res = await apiFetch(
         `${API_URL}/api/exams/create`,
         payload,
         {
