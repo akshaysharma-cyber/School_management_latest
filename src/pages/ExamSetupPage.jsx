@@ -243,23 +243,21 @@ export default function ExamSetupPage({ onBack }) {
   }
 );
 
-const data = await res.json();
+const message = await res.text();
 
-console.log("Exam Saved", data);
+console.log("Exam Saved", message);
 
-alert(
-  data.message ||
-  "Exam created successfully"
-);
+setSaved(true);
+
+setTimeout(() => {
+  setSaved(false);
+}, 2000);
+
+alert(message || "Exam created successfully");
     } catch (err) {
-
-      console.error(err);
-
-      alert(
-        err.response?.data?.message ||
-        "Failed to create exam"
-      );
-    }
+  console.error(err);
+  alert("Failed to create exam");
+}
   };
 
   return (
