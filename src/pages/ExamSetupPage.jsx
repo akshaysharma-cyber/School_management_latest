@@ -236,27 +236,21 @@ export default function ExamSetupPage({ onBack }) {
       console.log("FINAL PAYLOAD", payload);
 
       const res = await apiFetch(
-        `${API_URL}/api/exams/create`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  `${API_URL}/api/exams/create`,
+  {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }
+);
 
-      console.log("Exam Saved", res.data);
+const data = await res.json();
 
-      setSaved(true);
-      setTimeout(() => {
-  setSaved(false);
-}, 2000);
+console.log("Exam Saved", data);
 
-      alert(
-        res.data.message ||
-        res.data ||
-        "Exam created successfully"
-      );
+alert(
+  data.message ||
+  "Exam created successfully"
+);
     } catch (err) {
 
       console.error(err);
