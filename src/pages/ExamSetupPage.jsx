@@ -93,30 +93,35 @@ export default function ExamSetupPage({ onBack }) {
   }, [currentClass]);
 
   const fetchSubjectsByClass = async (className) => {
-    try {
-      const res = await apiFetch(
-        `${API_URL}/api/subjects-by-class`,
-        {
-          params: {
-            schoolId: user.schoolId,
-            className,
-          },
-        }
-      );
+  try {
 
-      setClassSubjectsMap((prev) => ({
-        ...prev,
-        [className]: res.data || [],
-      }));
-    } catch (err) {
-      console.error("Subject fetch failed", err);
+    const res = await apiFetch(
+      `${API_URL}/api/subjects-by-class?schoolId=${user.schoolId}&className=${className}`
+    );
 
-      setClassSubjectsMap((prev) => ({
-        ...prev,
-        [className]: [],
-      }));
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
     }
-  };
+
+    const data = await res.json();
+
+    console.log("Subjects API Response:", data);
+
+    setClassSubjectsMap((prev) => ({
+      ...prev,
+      [className]: data || [],
+    }));
+
+  } catch (err) {
+
+    console.error("Subject fetch failed", err);
+
+    setClassSubjectsMap((prev) => ({
+      ...prev,
+      [className]: [],
+    }));
+  }
+};
 
   const toggleClass = (cls) => {
     setSelectedClass(cls);

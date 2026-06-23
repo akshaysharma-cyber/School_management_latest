@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 async function refreshAccessToken() {
 
     const refresh =
@@ -7,7 +9,7 @@ async function refreshAccessToken() {
 
     const res =
         await fetch(
-            "http://localhost:8089/api/auth/refresh",
+            `${API_URL}/api/auth/refresh`,
             {
 
                 method: "POST",
