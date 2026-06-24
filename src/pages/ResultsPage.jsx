@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const PASSING_PCT = 33;
-const [examTypes, setExamTypes] = useState([]);
+
 
 const ACADEMIC_YEARS = [
   "2026-2027",
@@ -22,6 +22,7 @@ export default function ResultsPage({ onBack }) {
   const [page, setPage] = useState(1);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+  const [examTypes, setExamTypes] = useState([]);
 
 
   useEffect(() => {
