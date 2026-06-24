@@ -4,13 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const PAGE_SIZE = 10;
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const PASSING_PCT = 33;
-const EXAM_TYPES = [
-  "Unit Test 1",
-  "Unit Test 2",
-  "Half Yearly",
-  "Pre Board",
-  "Final Exam"
-];
+const [examTypes, setExamTypes] = useState([]);
 
 const ACADEMIC_YEARS = [
   "2026-2027",
@@ -28,6 +22,39 @@ export default function ResultsPage({ onBack }) {
   const [page, setPage] = useState(1);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+
+
+  useEffect(() => {
+
+  if (!selectedAcademicYear) return;
+
+  const fetchExamTypes = async () => {
+
+    try {
+
+      const user = JSON.parse(
+        localStorage.getItem("user")
+      );
+
+      const res = await apiFetch(
+        `${API_URL}/api/exams/types?schoolId=${user.schoolId}&academicYear=${selectedAcademicYear}`
+      );
+
+      const data = await res.json();
+
+      console.log("EXAM TYPES =", data);
+
+      setExamTypes(data || []);
+
+    } catch (err) {
+
+      console.error(err);
+    }
+  };
+
+  fetchExamTypes();
+
+}, [selectedAcademicYear]);
 
 
   // FETCH RESULT API
@@ -275,7 +302,7 @@ const subjectPassPercent =
             >
               <option value="">Select Exam Type</option>
 
-              {EXAM_TYPES.map(type => (
+              {examTypes.map(type => (
                 <option key={type} value={type}>
                   {type}
                 </option>
