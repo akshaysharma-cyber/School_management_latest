@@ -197,7 +197,6 @@ localStorage.setItem(
               </div>
             </div>
             <div className="sl">Don't have an account? <button onClick={()=>onNavigate("signup")}>Sign Up</button></div>
-            <p className="fc">© 2024 School Management System. All Rights Reserved.</p>
             <div className="db"><strong>Demo:</strong> Mobile: 9876543210 | Password: Admin@123</div>
           </div>
         </div>

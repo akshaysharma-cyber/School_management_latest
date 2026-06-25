@@ -415,7 +415,7 @@ expandedMenu===item.id
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"28px"}}>
             <div>
               <h1 style={{margin:"0 0 4px",fontSize:"26px",fontWeight:800,color:"#1a2744"}}>Welcome back, {user?.fullName || "Admin"}!</h1>
-              <p style={{margin:0,color:"#8898b8",fontSize:"14.5px"}}>Have a great day at {user?.school||"Greenfield Primary School"}.</p>
+              <p style={{margin:0,color:"#8898b8",fontSize:"14.5px"}}>Have a great day </p>
             </div>
             <p style={{margin:0,color:"#8898b8",fontSize:"14px",fontWeight:500,flexShrink:0}}>{today}</p>
           </div>
@@ -544,7 +544,7 @@ expandedMenu===item.id
           )}
 
           {/* Footer */}
-          <p style={{textAlign:"center",color:"#c0c8d8",fontSize:"12px",marginTop:"28px"}}>© 2024 Greenfield Primary School. All Rights Reserved.</p>
+          
         </div>
       </div>
     </div>

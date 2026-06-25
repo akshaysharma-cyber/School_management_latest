@@ -286,13 +286,11 @@ if (mobileError) {
       category: student.category || "",
       religion: student.religion || "",
       nationality: student.nationality || "",
-
       parentName: student.parentName || "",
       relationship: student.relationship || "",
       mobile: student.parentMobile || "",
       email: student.parentEmail || "",
       address: student.address || "",
-
       classVal: student.className || "",
       academicYear: student.academicYear || ""
 
