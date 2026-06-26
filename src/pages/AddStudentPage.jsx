@@ -713,7 +713,7 @@ if (mobileError) {
         {sectionTitle("Personal Information")}
         {row(
           <>
-            {field("Admission Number", "admissionNo", <input className="add-student-input" style={inputStyle(errors.admissionNo)} placeholder="e.g., GPS2024001" value={form.admissionNo} onChange={e => update("admissionNo", e.target.value)} />, true)}
+            {field("Admission Number", "admissionNo", <input className="add-student-input" style={inputStyle(errors.admissionNo)} placeholder="e.g., GPS2024001" value={form.admissionNo}  readOnly={!!form.id} onChange={e => update("admissionNo", e.target.value)} />, true)}
             {field("Student Full Name", "fullName", <input className="add-student-input" style={inputStyle(errors.fullName)} placeholder="Enter full name" value={form.fullName} onChange={e => update("fullName", e.target.value)} />, true)}
           </>
         )}

@@ -403,7 +403,7 @@ export default function AddTeacherPage({ onBack }) {
   };
 
   const closeBtn = {
-    background: "#f3f4f6",
+    background: "rgb(136, 151, 180)",
     border: "none",
     padding: "10px 18px",
     borderRadius: 10,
