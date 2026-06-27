@@ -14,6 +14,24 @@ export default function AttendancePage() {
     useState(
       new Date().toISOString().split("T")[0]
     );
+    const [lastMarkedTime, setLastMarkedTime] = useState(null);
+    const formatLastMarked = (date) => {
+    if (!date) return "Not marked yet";
+
+    const today = new Date();
+
+    const isToday =
+        date.toDateString() === today.toDateString();
+
+    const time = date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    return isToday
+        ? `Today, ${time}`
+        : `${date.toLocaleDateString()}, ${time}`;
+};
 
 
   useEffect(() => {
@@ -54,7 +72,10 @@ export default function AttendancePage() {
 
   const presentCount = Object.values(attendance).filter(Boolean).length;
   const absentCount = students.length - presentCount;
-  const pct = Math.round((presentCount / students.length) * 100);
+  const pct =
+  students.length > 0
+    ? ((presentCount / students.length) * 100).toFixed(0)
+    : 0;
 
   const filtered = students.filter(s => {
     const name = (s.fullName || "").toLowerCase();
@@ -169,6 +190,8 @@ setAttendance(attendanceMap);
         payload
       );
 
+      
+
       // ==============================
       // API CALL
       // ==============================
@@ -223,7 +246,7 @@ setAttendance(attendanceMap);
       // ==============================
       // SUCCESS
       // ==============================
-
+setLastMarkedTime(new Date());
       alert(
 
         data.message ||
@@ -517,10 +540,32 @@ setAttendance(attendanceMap);
 
         {/* Footer */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid #f5f6fc", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#b0bbc9", fontSize: 13 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#b0bbc9" strokeWidth="1.8" /><polyline points="12 6 12 12 16 14" stroke="#b0bbc9" strokeWidth="1.8" /></svg>
-            Last marked: Today, 09:30 AM
-          </div>
+          <div
+    style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        color: "#b0bbc9",
+        fontSize: 13
+    }}
+>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="#b0bbc9"
+            strokeWidth="1.8"
+        />
+        <polyline
+            points="12 6 12 12 16 14"
+            stroke="#b0bbc9"
+            strokeWidth="1.8"
+        />
+    </svg>
+
+    Last marked: {formatLastMarked(lastMarkedTime)}
+</div>
           <div style={{ display: "flex", gap: 10 }}>
             <button style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #e8ecf4", color: "#5a6783", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#5a6783" strokeWidth="1.8" /></svg>
