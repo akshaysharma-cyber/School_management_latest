@@ -8,6 +8,8 @@ export default function AddTeacherPage({ onBack }) {
     employeeId: "", qualification: "", subject: "", joiningDate: "", password: "",
     sendCredentials: true
   });
+  const [teacherDeleted, setTeacherDeleted] = useState(false);
+const [deletedTeacherName, setDeletedTeacherName] = useState("");
   const [errors, setErrors] = useState({});
   const [showPass, setShowPass] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -137,28 +139,38 @@ export default function AddTeacherPage({ onBack }) {
   }, [showTeacherList]);
 
 
-  const deleteTeacher = async (id) => {
+  const deleteTeacher = async (id, teacherName) => {
 
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this teacher?"
     );
 
     if (!confirmDelete) return;
-
+    const user = JSON.parse(localStorage.getItem("user"));
     try {
 
-      await apiFetch(
-        `${API_URL}/api/teachers/delete/${id}`,
+      const response = await apiFetch(
+        `${API_URL}/api/teachers/delete/${id}?schoolId=${user.schoolId}`,
         {
           method: "DELETE"
         }
       );
 
+      if (!response.ok) {
+        throw new Error("Failed to delete teacher");
+      }
+
       fetchTeachers();
+
+      setDeletedTeacherName(teacherName);
+
+      setTeacherDeleted(true);
 
     } catch (error) {
 
-      console.error("Delete error", error);
+      console.error(error);
+
+      alert("Failed to delete teacher.");
 
     }
   };
@@ -210,7 +222,76 @@ export default function AddTeacherPage({ onBack }) {
     Math.ceil(filteredTeachers.length / teachersPerPage);
 
 
+if (teacherDeleted) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "60vh",
+        gap: 16
+      }}
+    >
+      <div
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: "50%",
+          background: "#e8faf9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <polyline
+            points="20 6 9 17 4 12"
+            stroke="#2ec4b6"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
 
+      <h2
+        style={{
+          margin: 0,
+          fontSize: 22,
+          fontWeight: 800,
+          color: "#1a2744"
+        }}
+      >
+        Teacher Deleted Successfully!
+      </h2>
+
+      <p style={{ margin: 0, color: "#8898b8" }}>
+        {deletedTeacherName} has been deleted.
+      </p>
+
+      <button
+        onClick={() => {
+          setTeacherDeleted(false);
+          setShowTeacherList(true);
+          fetchTeachers();
+        }}
+        style={{
+          background: "#4361ee",
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: "10px 24px",
+          fontWeight: 700,
+          cursor: "pointer"
+        }}
+      >
+        View Teachers
+      </button>
+    </div>
+  );
+}
 
 
 
@@ -524,7 +605,7 @@ export default function AddTeacherPage({ onBack }) {
           </div>
           {errors.password && <p style={errStyle}>{errors.password}</p>}
         </div>
-      
+
       </div>
 
       <div
@@ -721,7 +802,12 @@ export default function AddTeacherPage({ onBack }) {
                         {/* DELETE */}
 
                         <button
-                          onClick={() => deleteTeacher(teacher.id)}
+                          onClick={() =>
+                            deleteTeacher(
+                              teacher.id,
+                              teacher.fullName
+                            )
+                          }
                           style={deleteBtn}
                         >
                           Delete

@@ -247,7 +247,7 @@ if (mobileError) {
     try {
 
       const response = await apiFetch(
-        `${API_URL}/api/students/delete/${id}`,
+        `${API_URL}/api/students/delete/${id}?schoolId=${loggedUser.schoolId}`,
         {
           method: "DELETE"
         }
@@ -410,19 +410,7 @@ if (mobileError) {
         >
           <h2>Student List</h2>
 
-          <button
-            onClick={() => setPage("add")}
-            style={{
-              background: "#4361ee",
-              color: "#fff",
-              border: "none",
-              borderRadius: 10,
-              padding: "10px 20px",
-              fontWeight: 700
-            }}
-          >
-           {form.id ? "Update Student" : "Add Student"}
-          </button>
+          
         </div>
 
         {/* SEARCH */}
