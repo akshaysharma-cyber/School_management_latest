@@ -297,7 +297,7 @@ export default function FeeCollectionPage({ onNavigate }) {
       const user =
         JSON.parse(localStorage.getItem("user"));
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/api/fees/receipt/${user.schoolId}/${selectedStudent}/${studentFeeId}`,
         {
           method: "GET"
