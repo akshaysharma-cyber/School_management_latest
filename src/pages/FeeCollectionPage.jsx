@@ -736,7 +736,7 @@ export default function FeeCollectionPage({ onNavigate }) {
                     }}
                     style={{
                       ...inputStyle,
-                      border: "none",
+                      border: "1.5px solid #cecfd4",
                       outline: "none",
                       fontSize: 13,
                       fontWeight: 600,

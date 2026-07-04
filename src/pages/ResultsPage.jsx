@@ -405,7 +405,7 @@ const subjectPassPercent =
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "2px solid #f0f2fb" }}>
-              {["#", "Admission No.", "Roll No.", "Student Name", "Marks Obtained", "Percentage", "Grade", "Result"].map(h => (
+              {["S NO.", "Admission No.", "Roll No.", "Student Name", "Marks Obtained", "Percentage", "Grade", "Result"].map(h => (
                 <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 12.5, fontWeight: 700, color: "#8898b8", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr>
@@ -419,8 +419,8 @@ const subjectPassPercent =
               return (
                 <tr key={s.studentId} className="trow" style={{ borderBottom: "1px solid #f5f6fc" }}>
                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#8898b8", fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{s.rollNo}</td>
                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#4361ee", fontWeight: 700 }}>{s.studentId}</td>
-                  <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{s.rollNo}</td>
                   <td style={{ padding: "13px 14px", fontSize: 14, color: "#1a2744", fontWeight: 600 }}>{s.name}</td>
                   <td style={{ padding: "13px 14px", fontSize: 14, color: "#1a2744", fontWeight: 700 }}>{markObtained}</td>
                   <td style={{ padding: "13px 14px", fontSize: 13.5, color: "#5a6783", fontWeight: 600 }}>{pct}%</td>

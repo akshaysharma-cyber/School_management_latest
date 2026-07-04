@@ -2,7 +2,7 @@ import { useState } from "react";
 import { apiFetch } from "../utils/apiFetch";
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_ITEMS = [
-  { id: 1, name: "Tuition Fee", amount: "2500" },
+  { id: 1, name: "Tuition Fee", amount: "" },
 ];
 
 export default function FeeStructurePage({ onBack }) {

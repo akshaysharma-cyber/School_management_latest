@@ -422,9 +422,7 @@ const res = await apiFetch(
         <div style={{ marginTop: 18, display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
           <div style={{ background: "#f8faff", border: "1.5px solid #e8ecf4", borderRadius: 12, padding: "14px 18px", maxWidth: 340 }}>
             <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#4361ee" }}>SMS Preview:</p>
-            <p style={{ margin: 0, fontSize: 13, color: "#5a6783", lineHeight: 1.5 }}>
-              Dear Parent, Ravi Kumar scored 223/300 (74.3%) in Unit Test - 1. - Greenfield Primary School
-            </p>
+           
           </div>
           <div>
             <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13.5, fontWeight: 600, color: "#1a2744" }}>
