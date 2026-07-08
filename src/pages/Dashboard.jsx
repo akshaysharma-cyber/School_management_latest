@@ -322,15 +322,65 @@ export default function Dashboard({ user, onLogout }) {
         </div>
 
         {/* Help box */}
-        <div style={{ margin: "12px", background: "linear-gradient(135deg,#f0f4ff,#e8ecff)", borderRadius: "16px", padding: "16px", marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-            <span style={{ fontSize: "22px" }}>📚</span>
-            <div>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: "13px", color: "#1a2744" }}>Need Help?</p>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#8898b8" }}>Contact Support</p>
-            </div>
-          </div>
-        </div>
+        <div
+  style={{
+    margin: "12px",
+    background: "linear-gradient(135deg,#f0f4ff,#e8ecff)",
+    borderRadius: "16px",
+    padding: "16px",
+    marginBottom: "20px",
+  }}
+>
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <span style={{ fontSize: "22px" }}>📚</span>
+
+    <div>
+      <p
+        style={{
+          margin: 0,
+          fontWeight: 800,
+          fontSize: "13px",
+          color: "#1a2744",
+        }}
+      >
+        Need Help?
+      </p>
+
+      {/* Email */}
+      <p
+        onClick={() =>
+          window.location.href =
+            "mailto:support@alpineschool.co.in?subject=School Management Support"
+        }
+        style={{
+          margin: "4px 0",
+          fontSize: "11.5px",
+          color: "#9597a1",
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        📧 support@alpineschool.co.in
+      </p>
+
+      {/* Phone */}
+      <p
+        onClick={() =>
+          window.location.href = "tel:+919876543210"
+        }
+        style={{
+          margin: 0,
+          fontSize: "11.5px",
+          color: "#9597a1",
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        📞 +91 9785843503
+      </p>
+    </div>
+  </div>
+</div>
       </div>
 
       {/* Main */}

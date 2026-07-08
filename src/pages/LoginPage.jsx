@@ -196,9 +196,44 @@ localStorage.setItem(
                 <p style={{color:"#8898b8",fontSize:"12.5px",margin:0}}>Your school data is protected.</p>
               </div>
             </div>
-            <div className="sl">Don't have an account? <button onClick={()=>onNavigate("signup")}>Sign Up</button></div>
-            <div className="db"><strong>Demo:</strong> Mobile: 9876543210 | Password: Admin@123</div>
-          </div>
+            <div className="sl">
+  Don't have an account?
+  <button onClick={() => onNavigate("signup")}>
+    Sign Up
+  </button>
+</div>
+
+<div className="db">
+  <strong>Demo:</strong> Mobile: 9876543210 | Password: Admin@123
+</div>
+
+{/* Footer */}
+<div
+  style={{
+    marginTop: "30px",
+    paddingTop: "16px",
+    borderTop: "1px solid #edf0f7",
+    textAlign: "center",
+    color: "#8898b8",
+    fontSize: "12px",
+    lineHeight: "1.8"
+  }}
+>
+  <div>
+    © {new Date().getFullYear()} <strong>Alpine School</strong>. All Rights Reserved.
+  </div>
+
+  <div>
+    Developed by <strong>Alpine Techenologies</strong>
+  </div>
+
+  <div>
+    📧 support@alpineschool.co.in &nbsp; | &nbsp;
+    🌐 alpineschool.co.in
+  </div>
+</div>
+
+</div> {/* lr ends here */}
         </div>
       </div>
     </>
