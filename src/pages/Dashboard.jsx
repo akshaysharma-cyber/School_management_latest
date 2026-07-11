@@ -9,6 +9,10 @@ import ExamSetupPage from "./ExamSetupPage";
 import MarksEntryPage from "./MarksEntryPage";
 import ResultsPage from "./ResultsPage";
 import ReportCardsPage from "./ReportCardsPage";
+import SettingsPage from "./SettingsPage";
+import SchoolProfilePage from "./SchoolProfilePage";
+import LanguagePage from "./LanguagePage";
+import AboutPage from "./AboutPage";
 import { apiFetch } from "../utils/apiFetch";
 const API_URL = import.meta.env.VITE_API_URL;
 import {
@@ -323,64 +327,64 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Help box */}
         <div
-  style={{
-    margin: "12px",
-    background: "linear-gradient(135deg,#f0f4ff,#e8ecff)",
-    borderRadius: "16px",
-    padding: "16px",
-    marginBottom: "20px",
-  }}
->
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <span style={{ fontSize: "22px" }}>📚</span>
+          style={{
+            margin: "12px",
+            background: "linear-gradient(135deg,#f0f4ff,#e8ecff)",
+            borderRadius: "16px",
+            padding: "16px",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "22px" }}>📚</span>
 
-    <div>
-      <p
-        style={{
-          margin: 0,
-          fontWeight: 800,
-          fontSize: "13px",
-          color: "#1a2744",
-        }}
-      >
-        Need Help?
-      </p>
+            <div>
+              <p
+                style={{
+                  margin: 0,
+                  fontWeight: 800,
+                  fontSize: "13px",
+                  color: "#1a2744",
+                }}
+              >
+                Need Help?
+              </p>
 
-      {/* Email */}
-      <p
-        onClick={() =>
-          window.location.href =
-            "mailto:support@alpineschool.co.in?subject=School Management Support"
-        }
-        style={{
-          margin: "4px 0",
-          fontSize: "11.5px",
-          color: "#9597a1",
-          cursor: "pointer",
-          fontWeight: 600,
-        }}
-      >
-        📧 support@alpineschool.co.in
-      </p>
+              {/* Email */}
+              <p
+                onClick={() =>
+                  window.location.href =
+                  "mailto:support@alpineschool.co.in?subject=School Management Support"
+                }
+                style={{
+                  margin: "4px 0",
+                  fontSize: "11.5px",
+                  color: "#9597a1",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                📧 support@alpineschool.co.in
+              </p>
 
-      {/* Phone */}
-      <p
-        onClick={() =>
-          window.location.href = "tel:+919876543210"
-        }
-        style={{
-          margin: 0,
-          fontSize: "11.5px",
-          color: "#9597a1",
-          cursor: "pointer",
-          fontWeight: 600,
-        }}
-      >
-        📞 +91 9785843503
-      </p>
-    </div>
-  </div>
-</div>
+              {/* Phone */}
+              <p
+                onClick={() =>
+                  window.location.href = "tel:+919876543210"
+                }
+                style={{
+                  margin: 0,
+                  fontSize: "11.5px",
+                  color: "#9597a1",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                📞 +91 9785843503
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main */}
@@ -571,6 +575,24 @@ export default function Dashboard({ user, onLogout }) {
             <TeacherListReportPage onBack={() => setSubPage(null)} />
           )}
 
+          {activePage === "settings" && !subPage && (
+            <SettingsPage
+              onNavigate={(page) => setSubPage(page)}
+            />
+          )}
+
+          {activePage === "settings" && subPage === "schoolProfile" && (
+            <SchoolProfilePage onBack={() => setSubPage(null)} />
+          )}
+
+          {activePage === "settings" && subPage === "language" && (
+            <LanguagePage onBack={() => setSubPage(null)} />
+          )}
+
+          {activePage === "settings" && subPage === "about" && (
+            <AboutPage onBack={() => setSubPage(null)} />
+          )}
+
           {activePage === "students" && !subPage && (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -609,7 +631,7 @@ export default function Dashboard({ user, onLogout }) {
             </div>
           )}
 
-          {(activePage === "classes" || activePage === "notices" || activePage === "reports" || activePage === "settings") && (
+          {(activePage === "classes" || activePage === "notices" || activePage === "reports") && (
             <div style={{ background: "#fff", borderRadius: 20, padding: "48px 32px", boxShadow: "0 2px 12px rgba(67,97,238,0.06)", textAlign: "center", color: "#8898b8" }}>
               <div style={{ fontSize: 48, marginBottom: 14 }}>🚧</div>
               <p style={{ fontSize: 17, fontWeight: 700, color: "#5a6783", margin: "0 0 6px" }}>Coming Soon</p>
