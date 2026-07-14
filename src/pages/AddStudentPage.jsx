@@ -620,67 +620,77 @@ if (mobileError) {
 
   if (page === "view" && selectedStudent) {
 
-    return (
+  return (
 
-      <div
-        style={{
-          background: "#fff",
-          padding: 30,
-          borderRadius: 20
-        }}
-      >
+    <div
+      style={{
+        background: "#fff",
+        padding: 30,
+        borderRadius: 20,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 40
+      }}
+    >
+
+      {/* Left Side */}
+      <div style={{ flex: 1 }}>
 
         <h2>Student Details</h2>
 
-        <div style={{ lineHeight: 2 }}>
+        <p><b>Name:</b> {selectedStudent.fullName}</p>
 
-          <p>
-            <b>Name:</b> {selectedStudent.fullName}
-          </p>
+        <p><b>Admission No:</b> {selectedStudent.admissionNumber}</p>
 
-          <p>
-            <b>Admission No:</b> {selectedStudent.admissionNumber}
-          </p>
+        <p><b>Class:</b> {selectedStudent.className}</p>
 
-          <p>
-            <b>Class:</b> {selectedStudent.className}
-          </p>
+        <p><b>Academic Year:</b> {selectedStudent.academicYear}</p>
 
-          <p>
-            <b>Academic Year:</b>
-            {selectedStudent.academicYear}
-          </p>
+        <p><b>Parent:</b> {selectedStudent.parentName}</p>
 
-          <p>
-            <b>Parent:</b> {selectedStudent.parentName}
-          </p>
-
-          <p>
-            <b>Mobile:</b> {selectedStudent.parentMobile}
-          </p>
-
-        </div>
+        <p><b>Mobile:</b> {selectedStudent.parentMobile}</p>
 
         <button
           onClick={() => setPage("list")}
           style={{
+            marginTop: 20,
             background: "#4361ee",
             color: "#fff",
             border: "none",
-            borderRadius: 10,
             padding: "10px 20px",
-            marginTop: 20
+            borderRadius: 10
           }}
         >
           Back
         </button>
 
       </div>
-    );
-  }
 
+      {/* Right Side */}
+      <div>
 
+        <img
+          src={`${API_URL}${selectedStudent.photoUrl}`}
+          alt="Student"
+          style={{
+            width: 140,
+            height: 170,
+            objectFit: "cover",
+            borderRadius: 8,
+            border: "2px solid #ddd"
+          }}
+          onError={(e) => {
+            e.target.src = "/default-user.png";
+          }}
+        />
 
+      </div>
+
+    </div>
+
+  );
+}
 
 
   return (
